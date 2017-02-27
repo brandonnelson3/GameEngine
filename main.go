@@ -43,6 +43,11 @@ func main() {
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	fmt.Println("OpenGL version", version)
 
+	// Configure global settings
+	gl.Enable(gl.DEPTH_TEST)
+	gl.DepthFunc(gl.LESS)
+	gl.ClearColor(1.0, 1.0, 1.0, 1.0)
+
 	vertexShader, err := NewVertexShader()
 	if err != nil {
 		panic(err)
@@ -86,14 +91,9 @@ func main() {
 	var vbo uint32
 	gl.GenBuffers(1, &vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, len(cubeVertices)*4, gl.Ptr(cubeVertices), gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, len(cubeVertices)*3*4, gl.Ptr(cubeVertices), gl.STATIC_DRAW)
 
 	vertexShader.BindVertexAttributes()
-
-	// Configure global settings
-	gl.Enable(gl.DEPTH_TEST)
-	gl.DepthFunc(gl.LESS)
-	gl.ClearColor(1.0, 1.0, 1.0, 1.0)
 
 	angle := 0.0
 	previousTime := glfw.GetTime()
@@ -120,53 +120,53 @@ func main() {
 	}
 }
 
-var cubeVertices = []float32{
-	//  X, Y, Z, U, V
+var cubeVertices = []Vertex{
+	//  X, Y, Z
 	// Bottom
-	-1.0, -1.0, -1.0,
-	1.0, -1.0, -1.0,
-	-1.0, -1.0, 1.0,
-	1.0, -1.0, -1.0,
-	1.0, -1.0, 1.0,
-	-1.0, -1.0, 1.0,
+	{mgl32.Vec3{-1.0, -1.0, -1.0}},
+	{mgl32.Vec3{1.0, -1.0, -1.0}},
+	{mgl32.Vec3{-1.0, -1.0, 1.0}},
+	{mgl32.Vec3{1.0, -1.0, -1.0}},
+	{mgl32.Vec3{1.0, -1.0, 1.0}},
+	{mgl32.Vec3{-1.0, -1.0, 1.0}},
 
 	// Top
-	-1.0, 1.0, -1.0,
-	-1.0, 1.0, 1.0,
-	1.0, 1.0, -1.0,
-	1.0, 1.0, -1.0,
-	-1.0, 1.0, 1.0,
-	1.0, 1.0, 1.0,
+	{mgl32.Vec3{-1.0, 1.0, -1.0}},
+	{mgl32.Vec3{-1.0, 1.0, 1.0}},
+	{mgl32.Vec3{1.0, 1.0, -1.0}},
+	{mgl32.Vec3{1.0, 1.0, -1.0}},
+	{mgl32.Vec3{-1.0, 1.0, 1.0}},
+	{mgl32.Vec3{1.0, 1.0, 1.0}},
 
 	// Front
-	-1.0, -1.0, 1.0,
-	1.0, -1.0, 1.0,
-	-1.0, 1.0, 1.0,
-	1.0, -1.0, 1.0,
-	1.0, 1.0, 1.0,
-	-1.0, 1.0, 1.0,
+	{mgl32.Vec3{-1.0, -1.0, 1.0}},
+	{mgl32.Vec3{1.0, -1.0, 1.0}},
+	{mgl32.Vec3{-1.0, 1.0, 1.0}},
+	{mgl32.Vec3{1.0, -1.0, 1.0}},
+	{mgl32.Vec3{1.0, 1.0, 1.0}},
+	{mgl32.Vec3{-1.0, 1.0, 1.0}},
 
 	// Back
-	-1.0, -1.0, -1.0,
-	-1.0, 1.0, -1.0,
-	1.0, -1.0, -1.0,
-	1.0, -1.0, -1.0,
-	-1.0, 1.0, -1.0,
-	1.0, 1.0, -1.0,
+	{mgl32.Vec3{-1.0, -1.0, -1.0}},
+	{mgl32.Vec3{-1.0, 1.0, -1.0}},
+	{mgl32.Vec3{1.0, -1.0, -1.0}},
+	{mgl32.Vec3{1.0, -1.0, -1.0}},
+	{mgl32.Vec3{-1.0, 1.0, -1.0}},
+	{mgl32.Vec3{1.0, 1.0, -1.0}},
 
 	// Left
-	-1.0, -1.0, 1.0,
-	-1.0, 1.0, -1.0,
-	-1.0, -1.0, -1.0,
-	-1.0, -1.0, 1.0,
-	-1.0, 1.0, 1.0,
-	-1.0, 1.0, -1.0,
+	{mgl32.Vec3{-1.0, -1.0, 1.0}},
+	{mgl32.Vec3{-1.0, 1.0, -1.0}},
+	{mgl32.Vec3{-1.0, -1.0, -1.0}},
+	{mgl32.Vec3{-1.0, -1.0, 1.0}},
+	{mgl32.Vec3{-1.0, 1.0, 1.0}},
+	{mgl32.Vec3{-1.0, 1.0, -1.0}},
 
 	// Right
-	1.0, -1.0, 1.0,
-	1.0, -1.0, -1.0,
-	1.0, 1.0, -1.0,
-	1.0, -1.0, 1.0,
-	1.0, 1.0, -1.0,
-	1.0, 1.0, 1.0,
+	{mgl32.Vec3{1.0, -1.0, 1.0}},
+	{mgl32.Vec3{1.0, -1.0, -1.0}},
+	{mgl32.Vec3{1.0, 1.0, -1.0}},
+	{mgl32.Vec3{1.0, -1.0, 1.0}},
+	{mgl32.Vec3{1.0, 1.0, -1.0}},
+	{mgl32.Vec3{1.0, 1.0, 1.0}},
 }

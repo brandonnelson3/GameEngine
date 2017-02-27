@@ -32,7 +32,7 @@ type Vertex struct {
 
 // VertexShader is a VertexShader.
 type VertexShader struct {
-	program, shader uint32
+	program uint32
 
 	// Uniforms.
 	projectionLoc, cameraLoc, modelLoc int32
@@ -80,9 +80,10 @@ func NewVertexShader() (*VertexShader, error) {
 	cameraLoc := gl.GetUniformLocation(program, gl.Str("camera\x00"))
 	modelLoc := gl.GetUniformLocation(program, gl.Str("model\x00"))
 
+	gl.DeleteShader(shader)
+
 	return &VertexShader{
 		program:       program,
-		shader:        shader,
 		projectionLoc: projectionLoc,
 		cameraLoc:     cameraLoc,
 		modelLoc:      modelLoc,

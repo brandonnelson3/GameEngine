@@ -21,7 +21,7 @@ void main() {
 
 // FragmentShader represents a FragmentShader
 type FragmentShader struct {
-	program, shader uint32
+	program uint32
 
 	// Uniforms.
 	colorLoc int32
@@ -67,9 +67,10 @@ func NewFragmentShader() (*FragmentShader, error) {
 
 	colorLoc := gl.GetUniformLocation(program, gl.Str("color\x00"))
 
+	gl.DeleteShader(shader)
+
 	return &FragmentShader{
 		program:  program,
-		shader:   shader,
 		colorLoc: colorLoc,
 	}, nil
 }
