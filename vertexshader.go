@@ -32,11 +32,9 @@ type Vertex struct {
 
 // VertexShader is a VertexShader.
 type VertexShader struct {
-	program uint32
+	uint32
 
-	// Uniforms.
-	projectionLoc, cameraLoc, modelLoc int32
-	projectionPtr, cameraPtr, modelPtr *mgl32.Mat4
+	Projection, Camera, Model *Matrix4
 }
 
 // NewVertexShader instantiates and initializes a shader object.
@@ -83,58 +81,21 @@ func NewVertexShader() (*VertexShader, error) {
 	gl.DeleteShader(shader)
 
 	return &VertexShader{
-		program:       program,
-		projectionLoc: projectionLoc,
-		cameraLoc:     cameraLoc,
-		modelLoc:      modelLoc,
+		uint32:     program,
+		Projection: NewMatrix4(program, projectionLoc),
+		Camera:     NewMatrix4(program, cameraLoc),
+		Model:      NewMatrix4(program, modelLoc),
 	}, nil
 }
 
 // AddToPipeline adds this shader to the provided pipeline.
 func (s *VertexShader) AddToPipeline(pipeline uint32) {
-	gl.UseProgramStages(pipeline, gl.VERTEX_SHADER_BIT, s.program)
-}
-
-// SetProjectionMatrix sets the pointer to the ProjectionMatrix desired.
-func (s *VertexShader) SetProjectionMatrix(m *mgl32.Mat4) {
-	s.projectionPtr = m
-}
-
-// SetCameraMatrix sets the pointer to the CameraMatrix desired.
-func (s *VertexShader) SetCameraMatrix(m *mgl32.Mat4) {
-	s.cameraPtr = m
-}
-
-// SetModelMatrix sets the pointer to the ModelMatrix desired.
-func (s *VertexShader) SetModelMatrix(m *mgl32.Mat4) {
-	s.modelPtr = m
-}
-
-// UpdateProjectionMatrix updates the copy of the ProjectionMatrix on the GPU.
-func (s *VertexShader) UpdateProjectionMatrix() {
-	gl.ProgramUniformMatrix4fv(s.program, s.projectionLoc, 1, false, &s.projectionPtr[0])
-}
-
-// UpdateCameraMatrix updates the copy of the CameraMatrix on the GPU.
-func (s *VertexShader) UpdateCameraMatrix() {
-	gl.ProgramUniformMatrix4fv(s.program, s.cameraLoc, 1, false, &s.cameraPtr[0])
-}
-
-// UpdateModelMatrix updates the copy of the ModelMatrix on the GPU.
-func (s *VertexShader) UpdateModelMatrix() {
-	gl.ProgramUniformMatrix4fv(s.program, s.modelLoc, 1, false, &s.modelPtr[0])
-}
-
-// UpdateAll updates the copy of all uniforms on GPU.
-func (s *VertexShader) UpdateAll() {
-	gl.ProgramUniformMatrix4fv(s.program, s.projectionLoc, 1, false, &s.projectionPtr[0])
-	gl.ProgramUniformMatrix4fv(s.program, s.cameraLoc, 1, false, &s.cameraPtr[0])
-	gl.ProgramUniformMatrix4fv(s.program, s.modelLoc, 1, false, &s.modelPtr[0])
+	gl.UseProgramStages(pipeline, gl.VERTEX_SHADER_BIT, s.uint32)
 }
 
 // BindVertexAttributes binds the attributes per vertex.
 func (s *VertexShader) BindVertexAttributes() {
-	vertAttrib := uint32(gl.GetAttribLocation(s.program, gl.Str("vert\x00")))
+	vertAttrib := uint32(gl.GetAttribLocation(s.uint32, gl.Str("vert\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
 	gl.VertexAttribPointer(vertAttrib, 3, gl.FLOAT, false, 3*4, gl.PtrOffset(0))
 }
