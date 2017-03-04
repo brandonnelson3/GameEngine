@@ -5,10 +5,12 @@ import (
 	"log"
 	"runtime"
 
-	"github.com/brandonnelson3/GameEngine/timer"
 	"github.com/go-gl/gl/v4.5-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 	"github.com/go-gl/mathgl/mgl32"
+
+	"github.com/brandonnelson3/GameEngine/framerate"
+	"github.com/brandonnelson3/GameEngine/timer"
 )
 
 const windowWidth = 800
@@ -94,6 +96,7 @@ func main() {
 
 	for !window.ShouldClose() {
 		timer.Update()
+		framerate.Update(timer.GetPreviousFrameLength())
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 		elapsed := timer.GetPreviousFrameLength()
