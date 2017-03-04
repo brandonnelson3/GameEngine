@@ -10,6 +10,7 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 
 	"github.com/brandonnelson3/GameEngine/framerate"
+	"github.com/brandonnelson3/GameEngine/input"
 	"github.com/brandonnelson3/GameEngine/timer"
 )
 
@@ -36,6 +37,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	window.SetKeyCallback(input.KeyCallBack)
+	window.SetMouseButtonCallback(input.MouseButtonCallback)
+	window.SetCursorPosCallback(input.CursorPosCallback)
 	window.MakeContextCurrent()
 
 	// Initialize Glow
