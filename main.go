@@ -69,8 +69,8 @@ func main() {
 	gl.UseProgram(0)
 	gl.BindProgramPipeline(pipeline)
 
-	vertexShader.Projection.Set(mgl32.Perspective(mgl32.DegToRad(45.0), float32(windowWidth)/windowHeight, 0.1, 10.0))
-	vertexShader.Camera.Set(mgl32.LookAtV(mgl32.Vec3{3, 3, 3}, mgl32.Vec3{0, 0, 0}, mgl32.Vec3{0, 1, 0}))
+	vertexShader.Projection.Set(mgl32.Perspective(mgl32.DegToRad(45.0), float32(windowWidth)/windowHeight, 0.1, 100.0))
+	vertexShader.Camera.Set(mgl32.LookAtV(mgl32.Vec3{-25, 13, -25}, mgl32.Vec3{15, 0, 15}, mgl32.Vec3{0, 1, 0}))
 	vertexShader.Model.Set(mgl32.Ident4())
 
 	fragmentShader.Color.Set(mgl32.Vec4{0, 1, 0, 1})
@@ -101,10 +101,18 @@ func main() {
 		previousTime = time
 
 		angle += elapsed
-		vertexShader.Model.Set(mgl32.HomogRotate3D(float32(angle), mgl32.Vec3{0, 1, 0}))
+		modelRotation := mgl32.HomogRotate3D(float32(angle), mgl32.Vec3{0, 1, 0})
 
 		gl.BindVertexArray(vao)
-		gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
+
+		for x := 0; x < 10; x++ {
+			for y := 0; y < 10; y++ {
+				modelTranslation := mgl32.Translate3D(float32(5*x), 0.0, float32(5*y))
+				vertexShader.Model.Set(modelTranslation.Mul4(modelRotation))
+				fragmentShader.Color.Set(mgl32.Vec4{float32(x) / 10, float32(y) / 10, float32(x*y) / 100, 1})
+				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
+			}
+		}
 
 		// Maintenance
 		window.SwapBuffers()
