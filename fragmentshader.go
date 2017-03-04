@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/go-gl/gl/v4.5-core/gl"
+
+	"github.com/brandonnelson3/GameEngine/math"
 )
 
 const (
@@ -22,7 +24,7 @@ void main() {
 type FragmentShader struct {
 	uint32
 
-	Color *Vector4
+	Color *math.Vector4
 }
 
 // NewFragmentShader instantiates and initializes a FragmentShader object.
@@ -68,7 +70,7 @@ func NewFragmentShader() (*FragmentShader, error) {
 
 	return &FragmentShader{
 		uint32: program,
-		Color:  NewVector4(program, colorLoc),
+		Color:  math.NewVector4(program, colorLoc),
 	}, nil
 }
 

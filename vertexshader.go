@@ -6,6 +6,8 @@ import (
 
 	"github.com/go-gl/gl/v4.5-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
+
+	"github.com/brandonnelson3/GameEngine/math"
 )
 
 const (
@@ -34,7 +36,7 @@ type Vertex struct {
 type VertexShader struct {
 	uint32
 
-	Projection, Camera, Model *Matrix4
+	Projection, Camera, Model *math.Matrix4
 }
 
 // NewVertexShader instantiates and initializes a shader object.
@@ -82,9 +84,9 @@ func NewVertexShader() (*VertexShader, error) {
 
 	return &VertexShader{
 		uint32:     program,
-		Projection: NewMatrix4(program, projectionLoc),
-		Camera:     NewMatrix4(program, cameraLoc),
-		Model:      NewMatrix4(program, modelLoc),
+		Projection: math.NewMatrix4(program, projectionLoc),
+		Camera:     math.NewMatrix4(program, cameraLoc),
+		Model:      math.NewMatrix4(program, modelLoc),
 	}, nil
 }
 
