@@ -33,20 +33,26 @@ func Update(p float64) {
 	mu.Unlock()
 }
 
+func calculateFrameDetails() (float64, float64) {
+	totalTime := float64(0)
+	mu.Lock()
+	for _, t := range times {
+		totalTime += t
+	}
+	mu.Unlock()
+	averageFrameTime := totalTime / numAveragedFrameLengths
+	averageFramesPerSecond := 1 / averageFrameTime
+
+	return averageFrameTime, averageFramesPerSecond
+}
+
 func log() {
 	for range time.Tick(time.Millisecond * 500) {
 		if frames < numAveragedFrameLengths {
 			continue
 		}
-		totalTime := float64(0)
-		mu.Lock()
-		for _, t := range times {
-			totalTime += t
-		}
-		mu.Unlock()
-		averageFrameTime := totalTime / numAveragedFrameLengths
-		averageFramesPerSecond := 1 / averageFrameTime
 
+		averageFrameTime, averageFramesPerSecond := calculateFrameDetails()
 		fmt.Printf("FPS - Length: %.3f ms - Avg: %.1f", averageFrameTime*1000, averageFramesPerSecond)
 	}
 }
