@@ -5,6 +5,7 @@ import (
 	"log"
 	"runtime"
 
+	"github.com/brandonnelson3/GameEngine/timer"
 	"github.com/go-gl/gl/v4.5-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 	"github.com/go-gl/mathgl/mgl32"
@@ -90,15 +91,12 @@ func main() {
 	vertexShader.BindVertexAttributes()
 
 	angle := 0.0
-	previousTime := glfw.GetTime()
 
 	for !window.ShouldClose() {
+		timer.Update()
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-		// Update
-		time := glfw.GetTime()
-		elapsed := time - previousTime
-		previousTime = time
+		elapsed := timer.GetPreviousFrameLength()
 
 		angle += elapsed
 		modelRotation := mgl32.HomogRotate3D(float32(angle), mgl32.Vec3{0, 1, 0})
