@@ -21,16 +21,15 @@ func init() {
 	go log()
 }
 
-// Update is intended to be called at the same point in every frame.
-func Update(p float64) {
-	mu.Lock()
-	times[i] = p
-	frames++
-	i++
-	if i >= numAveragedFrameLengths {
-		i = 0
+func log() {
+	for range time.Tick(time.Millisecond * 500) {
+		if frames < numAveragedFrameLengths {
+			continue
+		}
+
+		averageFrameTime, averageFramesPerSecond := calculateFrameDetails()
+		fmt.Printf("Framerate - Length: %.3f ms - Avg: %.1f FPS", averageFrameTime*1000, averageFramesPerSecond)
 	}
-	mu.Unlock()
 }
 
 func calculateFrameDetails() (float64, float64) {
@@ -46,13 +45,14 @@ func calculateFrameDetails() (float64, float64) {
 	return averageFrameTime, averageFramesPerSecond
 }
 
-func log() {
-	for range time.Tick(time.Millisecond * 500) {
-		if frames < numAveragedFrameLengths {
-			continue
-		}
-
-		averageFrameTime, averageFramesPerSecond := calculateFrameDetails()
-		fmt.Printf("FPS - Length: %.3f ms - Avg: %.1f", averageFrameTime*1000, averageFramesPerSecond)
+// Update is intended to be called at the same point in every frame.
+func Update(p float64) {
+	mu.Lock()
+	times[i] = p
+	frames++
+	i++
+	if i >= numAveragedFrameLengths {
+		i = 0
 	}
+	mu.Unlock()
 }
