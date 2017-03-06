@@ -101,6 +101,7 @@ func main() {
 	for !window.ShouldClose() {
 		timer.Update()
 		framerate.Update(timer.GetPreviousFrameLength())
+		input.Update()
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 		elapsed := timer.GetPreviousFrameLength()

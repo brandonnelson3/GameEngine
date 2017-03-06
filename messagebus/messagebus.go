@@ -11,7 +11,8 @@ var (
 
 // Message is a message being transfered.
 type Message struct {
-	T, V string
+	Type string
+	Data interface{}
 }
 
 // MessageHandler is any function which can be registered to receieve messages.
@@ -21,7 +22,7 @@ type MessageHandler func(m *Message)
 func SendSync(m *Message) {
 	mu.Lock()
 	defer mu.Unlock()
-	for _, h := range typeHandlers[m.T] {
+	for _, h := range typeHandlers[m.Type] {
 		h(m)
 	}
 }
