@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	"github.com/brandonnelson3/GameEngine/messagebus"
 )
 
 const (
@@ -28,7 +30,7 @@ func log() {
 		}
 
 		averageFrameTime, averageFramesPerSecond := calculateFrameDetails()
-		fmt.Printf("Framerate - Length: %.3f ms - Avg: %.1f FPS", averageFrameTime*1000, averageFramesPerSecond)
+		messagebus.SendSync(&messagebus.Message{"log", fmt.Sprintf("Framerate - Length: %.3f ms - Avg: %.1f FPS", averageFrameTime*1000, averageFramesPerSecond)})
 	}
 }
 
