@@ -10,8 +10,7 @@ import (
 const keyRange = 349
 
 var (
-	down          [keyRange]bool
-	downThisFrame [keyRange]bool
+	down [keyRange]bool
 )
 
 // Update calls all of the currently pressed keys.
@@ -28,11 +27,9 @@ func Update() {
 func KeyCallBack(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	if action == glfw.Press {
 		down[key] = true
-		downThisFrame[key] = true
 	}
 	if action == glfw.Release {
 		down[key] = false
-		downThisFrame[key] = false
 	}
 }
 
