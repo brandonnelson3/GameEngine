@@ -4,22 +4,35 @@ import (
 	"fmt"
 
 	"github.com/brandonnelson3/GameEngine/messagebus"
+
 	"github.com/go-gl/glfw/v3.1/glfw"
 )
 
-const keyRange = 349
+const (
+	keyRange = 349
+)
 
 var (
 	down [keyRange]bool
 )
 
+// MouseInput is message data which is sent for every mouse cursor position callback.
+type MouseInput struct {
+	X, Y float64
+}
+
 // Update calls all of the currently pressed keys.
 func Update() {
+	pressedKeys := make([]glfw.Key, 0, 10)
+
 	// glfw.KeySpace is the lowest key.
 	for i := glfw.KeySpace; i < keyRange; i++ {
 		if down[i] {
-			messagebus.SendSync(&messagebus.Message{Type: "key", Data: i})
+			pressedKeys = append(pressedKeys, i)
 		}
+	}
+	if len(pressedKeys) > 0 {
+		messagebus.SendSync(&messagebus.Message{Type: "key", Data: pressedKeys})
 	}
 }
 
@@ -39,6 +52,6 @@ func MouseButtonCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Ac
 }
 
 // CursorPosCallback is the function bound to handle mouse movement events from OpenGL.
-func CursorPosCallback(w *glfw.Window, xpos, ypos float64) {
-	fmt.Printf("Got mouse movement: [%f, %f]\n", xpos, ypos)
+func CursorPosCallback(w *glfw.Window, x, y float64) {
+	messagebus.SendSync(&messagebus.Message{Type: "mouse", Data: MouseInput{x, y}})
 }

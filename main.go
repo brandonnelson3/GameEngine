@@ -12,10 +12,8 @@ import (
 	"github.com/brandonnelson3/GameEngine/framerate"
 	"github.com/brandonnelson3/GameEngine/input"
 	"github.com/brandonnelson3/GameEngine/timer"
+	"github.com/brandonnelson3/GameEngine/window"
 )
-
-const windowWidth = 800
-const windowHeight = 600
 
 func init() {
 	// GLFW event handling must run on the main OS thread
@@ -28,19 +26,12 @@ func main() {
 	}
 	defer glfw.Terminate()
 
-	glfw.WindowHint(glfw.Resizable, glfw.False)
-	glfw.WindowHint(glfw.ContextVersionMajor, 4)
-	glfw.WindowHint(glfw.ContextVersionMinor, 5)
-	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
-	window, err := glfw.CreateWindow(windowWidth, windowHeight, "Cube", nil, nil)
-	if err != nil {
-		panic(err)
-	}
-	window.SetKeyCallback(input.KeyCallBack)
-	window.SetMouseButtonCallback(input.MouseButtonCallback)
-	window.SetCursorPosCallback(input.CursorPosCallback)
-	window.MakeContextCurrent()
+	w := window.Create()
+
+	w.SetKeyCallback(input.KeyCallBack)
+	w.SetMouseButtonCallback(input.MouseButtonCallback)
+	w.SetCursorPosCallback(input.CursorPosCallback)
+	w.MakeContextCurrent()
 
 	// Initialize Glow
 	if err := gl.Init(); err != nil {
@@ -76,8 +67,7 @@ func main() {
 	gl.UseProgram(0)
 	gl.BindProgramPipeline(pipeline)
 
-	vertexShader.Projection.Set(mgl32.Perspective(mgl32.DegToRad(45.0), float32(windowWidth)/windowHeight, 0.1, 100.0))
-	vertexShader.Camera.Set(mgl32.LookAtV(mgl32.Vec3{-25, 13, -25}, mgl32.Vec3{15, 0, 15}, mgl32.Vec3{0, 1, 0}))
+	vertexShader.Projection.Set(window.GetProjection())
 	vertexShader.Model.Set(mgl32.Ident4())
 
 	fragmentShader.Color.Set(mgl32.Vec4{0, 1, 0, 1})
@@ -98,10 +88,16 @@ func main() {
 
 	angle := 0.0
 
-	for !window.ShouldClose() {
+	camera := NewFirstPersonCamera()
+
+	for !w.ShouldClose() {
 		timer.Update()
 		framerate.Update(timer.GetPreviousFrameLength())
 		input.Update()
+		camera.Update(timer.GetPreviousFrameLength())
+
+		vertexShader.Camera.Set(camera.GetView())
+
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 		elapsed := timer.GetPreviousFrameLength()
@@ -121,8 +117,10 @@ func main() {
 		}
 
 		// Maintenance
-		window.SwapBuffers()
+		w.SwapBuffers()
 		glfw.PollEvents()
+
+		window.RecenterCursor()
 	}
 }
 
