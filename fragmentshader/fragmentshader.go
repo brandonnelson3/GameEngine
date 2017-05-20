@@ -68,6 +68,8 @@ func NewFragmentShader() (*FragmentShader, error) {
 
 	gl.DeleteShader(shader)
 
+	gl.BindFragDataLocation(program, 0, gl.Str("outputColor\x00"))
+
 	return &FragmentShader{
 		uint32: program,
 		Color:  math.NewVector4(program, colorLoc),
@@ -77,9 +79,4 @@ func NewFragmentShader() (*FragmentShader, error) {
 // AddToPipeline adds this shader to the provided pipeline.
 func (s *FragmentShader) AddToPipeline(pipeline uint32) {
 	gl.UseProgramStages(pipeline, gl.FRAGMENT_SHADER_BIT, s.uint32)
-}
-
-// BindFragmentOutputDataLocation binds attribute which contains the output color.
-func (s *FragmentShader) BindFragmentOutputDataLocation() {
-	gl.BindFragDataLocation(s.uint32, 0, gl.Str("outputColor\x00"))
 }

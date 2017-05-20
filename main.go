@@ -70,11 +70,6 @@ func main() {
 	gl.BindProgramPipeline(pipeline)
 
 	vertexShader.Projection.Set(window.GetProjection())
-	vertexShader.Model.Set(mgl32.Ident4())
-
-	fragmentShader.Color.Set(mgl32.Vec4{0, 1, 0, 1})
-
-	fragmentShader.BindFragmentOutputDataLocation()
 
 	// Configure the vertex data
 	var vao uint32
@@ -111,7 +106,7 @@ func main() {
 
 		for x := 0; x < 10; x++ {
 			for y := 0; y < 10; y++ {
-				modelTranslation := mgl32.Translate3D(float32(3*x), 0.0, float32(2*y))
+				modelTranslation := mgl32.Translate3D(float32(4*x), 0.0, float32(4*y))
 				vertexShader.Model.Set(modelTranslation.Mul4(modelRotation))
 				fragmentShader.Color.Set(mgl32.Vec4{float32(x) / 10, float32(y) / 10, float32(x*y) / 100, 1})
 				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
