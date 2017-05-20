@@ -12,8 +12,8 @@ func init() {
 	previousElapsed = 0
 }
 
-// Update is expected to be called at the same point in every frame to work properly.
-func Update() {
+// BeginningOfFrame is expected to be called at the same point in every frame to work properly.
+func BeginningOfFrame() {
 	time := glfw.GetTime()
 	previousElapsed = time - previousTime
 	previousTime = time

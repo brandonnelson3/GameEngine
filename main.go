@@ -93,7 +93,7 @@ func main() {
 	camera := NewFirstPersonCamera()
 
 	for !w.ShouldClose() {
-		timer.Update()
+		timer.BeginningOfFrame()
 		framerate.BeginningOfFrame(timer.GetTime())
 		input.Update()
 		camera.Update(timer.GetPreviousFrameLength())
@@ -111,7 +111,7 @@ func main() {
 
 		for x := 0; x < 10; x++ {
 			for y := 0; y < 10; y++ {
-				modelTranslation := mgl32.Translate3D(float32(5*x), 0.0, float32(5*y))
+				modelTranslation := mgl32.Translate3D(float32(3*x), 0.0, float32(2*y))
 				vertexShader.Model.Set(modelTranslation.Mul4(modelRotation))
 				fragmentShader.Color.Set(mgl32.Vec4{float32(x) / 10, float32(y) / 10, float32(x*y) / 100, 1})
 				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
