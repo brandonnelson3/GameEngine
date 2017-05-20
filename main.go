@@ -9,9 +9,11 @@ import (
 	"github.com/go-gl/glfw/v3.1/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 
+	"github.com/brandonnelson3/GameEngine/fragmentshader"
 	"github.com/brandonnelson3/GameEngine/framerate"
 	"github.com/brandonnelson3/GameEngine/input"
 	"github.com/brandonnelson3/GameEngine/timer"
+	"github.com/brandonnelson3/GameEngine/vertexshader"
 	"github.com/brandonnelson3/GameEngine/window"
 )
 
@@ -46,12 +48,12 @@ func main() {
 	gl.DepthFunc(gl.LESS)
 	gl.ClearColor(1.0, 1.0, 1.0, 1.0)
 
-	vertexShader, err := NewVertexShader()
+	vertexShader, err := vertexshader.NewVertexShader()
 	if err != nil {
 		panic(err)
 	}
 
-	fragmentShader, err := NewFragmentShader()
+	fragmentShader, err := fragmentshader.NewFragmentShader()
 	if err != nil {
 		panic(err)
 	}
@@ -124,7 +126,7 @@ func main() {
 	}
 }
 
-var cubeVertices = []Vertex{
+var cubeVertices = []vertexshader.Vertex{
 	//  X, Y, Z
 	// Bottom
 	{mgl32.Vec3{-1.0, -1.0, -1.0}},

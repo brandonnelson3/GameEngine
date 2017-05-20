@@ -1,4 +1,4 @@
-package main
+package vertexshader
 
 import (
 	"fmt"
@@ -29,7 +29,7 @@ void main() {
 
 // Vertex is a Vertex.
 type Vertex struct {
-	vert mgl32.Vec3
+	Vert mgl32.Vec3
 }
 
 // VertexShader is a VertexShader.
