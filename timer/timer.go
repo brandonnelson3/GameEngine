@@ -23,3 +23,8 @@ func Update() {
 func GetPreviousFrameLength() float64 {
 	return previousElapsed
 }
+
+// GetTime returns the current time.Now().
+func GetTime() float64 {
+	return glfw.GetTime()
+}

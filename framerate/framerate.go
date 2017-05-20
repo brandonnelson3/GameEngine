@@ -10,6 +10,7 @@ import (
 
 const (
 	numAveragedFrameLengths = 25
+	framerateCap            = 105
 )
 
 var (
@@ -17,6 +18,8 @@ var (
 	frames int
 	i      = 0
 	mu     sync.Mutex
+
+	thisFrameStart float64
 )
 
 func init() {
@@ -30,7 +33,7 @@ func log() {
 		}
 
 		averageFrameTime, averageFramesPerSecond := calculateFrameDetails()
-		messagebus.SendSync(&messagebus.Message{Type: "log", Data: fmt.Sprintf("Framerate - Length: %.3f ms - Avg: %.1f FPS", averageFrameTime*1000, averageFramesPerSecond)})
+		messagebus.SendSync(&messagebus.Message{Type: "log", Data: fmt.Sprintf("Framerate - Length: %.3f ms - Avg: %.1f FPS Limiting framerate to %d", averageFrameTime*1000, averageFramesPerSecond, framerateCap)})
 	}
 }
 
@@ -47,14 +50,22 @@ func calculateFrameDetails() (float64, float64) {
 	return averageFrameTime, averageFramesPerSecond
 }
 
-// Update is intended to be called at the same point in every frame.
-func Update(p float64) {
+// BeginningOfFrame is intended to be called at the beginning of the frame.
+func BeginningOfFrame(now float64) {
+	thisFrameStart = now
+}
+
+// EndOfFrame is intended to be called at the end of the frame with the current time. This function will block to maintain the intended maximum frame rate.
+func EndOfFrame(now float64) {
+	d := now - thisFrameStart
 	mu.Lock()
-	times[i] = p
+	times[i] = d
 	frames++
 	i++
 	if i >= numAveragedFrameLengths {
 		i = 0
 	}
 	mu.Unlock()
+	// Sleep for as long as we need to...
+	time.Sleep(time.Duration((float64(time.Second) / framerateCap) - (float64(time.Second) * d)))
 }

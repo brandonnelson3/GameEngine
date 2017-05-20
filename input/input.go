@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	keyRange = 349
+	keyRange = glfw.KeyLast
 )
 
 var (

@@ -94,7 +94,7 @@ func main() {
 
 	for !w.ShouldClose() {
 		timer.Update()
-		framerate.Update(timer.GetPreviousFrameLength())
+		framerate.BeginningOfFrame(timer.GetTime())
 		input.Update()
 		camera.Update(timer.GetPreviousFrameLength())
 
@@ -123,6 +123,7 @@ func main() {
 		glfw.PollEvents()
 
 		window.RecenterCursor()
+		framerate.EndOfFrame(timer.GetTime())
 	}
 }
 
