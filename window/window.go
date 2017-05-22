@@ -8,10 +8,10 @@ import (
 
 var (
 	// Width is the width of the window.
-	Width = 800
+	Width = int32(800)
 
 	// Height is the height of the window.
-	Height = 600
+	Height = int32(600)
 
 	// Title is the title of the window.
 	Title = "Game Engine Demo"
@@ -35,7 +35,7 @@ func Create() *glfw.Window {
 	glfw.WindowHint(glfw.ContextVersionMinor, 5)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
-	w, err := glfw.CreateWindow(Width, Height, Title, nil, nil)
+	w, err := glfw.CreateWindow(int(Width), int(Height), Title, nil, nil)
 	if err != nil {
 		panic(err)
 	}

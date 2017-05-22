@@ -9,10 +9,14 @@ import (
 	"github.com/go-gl/glfw/v3.1/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 
+	"github.com/brandonnelson3/GameEngine/depthfragmentshader"
+	"github.com/brandonnelson3/GameEngine/depthvertexshader"
 	"github.com/brandonnelson3/GameEngine/fragmentshader"
 	"github.com/brandonnelson3/GameEngine/framerate"
 	"github.com/brandonnelson3/GameEngine/input"
+	"github.com/brandonnelson3/GameEngine/lightcullingshader"
 	"github.com/brandonnelson3/GameEngine/timer"
+	"github.com/brandonnelson3/GameEngine/uniforms"
 	"github.com/brandonnelson3/GameEngine/vertexshader"
 	"github.com/brandonnelson3/GameEngine/window"
 )
@@ -43,33 +47,70 @@ func main() {
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	fmt.Println("OpenGL version", version)
 
+	// Initially place cursor dead center.
+	window.RecenterCursor()
+
 	// Configure global settings
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)
-	gl.ClearColor(1.0, 1.0, 1.0, 1.0)
+	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
+	// Build Depth Pipeline
+	depthVertexShader, err := depthvertexshader.NewDepthVertexShader()
+	if err != nil {
+		panic(err)
+	}
+	depthFragmentShader, err := depthfragmentshader.NewDepthFragmentShader()
+	if err != nil {
+		panic(err)
+	}
+	var depthPipeline uint32
+	gl.CreateProgramPipelines(1, &depthPipeline)
+	depthVertexShader.AddToPipeline(depthPipeline)
+	depthFragmentShader.AddToPipeline(depthPipeline)
+	gl.ValidateProgramPipeline(depthPipeline)
+	depthVertexShader.BindVertexAttributes()
+
+	lightCullingShader, err := lightcullingshader.NewLightCullingShader()
+	if err != nil {
+		panic(err)
+	}
+
+	// Build Normal Pipeline
 	vertexShader, err := vertexshader.NewVertexShader()
 	if err != nil {
 		panic(err)
 	}
-
 	fragmentShader, err := fragmentshader.NewFragmentShader()
 	if err != nil {
 		panic(err)
 	}
-
-	var pipeline uint32
-	gl.CreateProgramPipelines(1, &pipeline)
-
-	vertexShader.AddToPipeline(pipeline)
-	fragmentShader.AddToPipeline(pipeline)
-
-	gl.ValidateProgramPipeline(pipeline)
-
+	var normalPipeline uint32
+	gl.CreateProgramPipelines(1, &normalPipeline)
+	vertexShader.AddToPipeline(normalPipeline)
+	fragmentShader.AddToPipeline(normalPipeline)
+	gl.ValidateProgramPipeline(normalPipeline)
 	gl.UseProgram(0)
-	gl.BindProgramPipeline(pipeline)
+	gl.BindProgramPipeline(normalPipeline)
 
-	vertexShader.Projection.Set(window.GetProjection())
+	// Build Depth FrameBuffer
+	var depthMapFBO uint32
+	gl.GenFramebuffers(1, &depthMapFBO)
+	var depthMap uint32
+	gl.GenTextures(1, &depthMap)
+	gl.BindTexture(gl.TEXTURE_2D, depthMap)
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, int32(window.Width), int32(window.Height), 0, gl.DEPTH_COMPONENT, gl.FLOAT, nil)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_BORDER)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_BORDER)
+	borderColor := []float32{1.0, 1.0, 1.0, 1.0}
+	gl.TexParameterfv(gl.TEXTURE_2D, gl.TEXTURE_BORDER_COLOR, &borderColor[0])
+	gl.BindFramebuffer(gl.FRAMEBUFFER, depthMapFBO)
+	gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthMap, 0)
+	gl.DrawBuffer(gl.NONE)
+	gl.ReadBuffer(gl.NONE)
+	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 
 	// Configure the vertex data
 	var vao uint32
@@ -84,7 +125,6 @@ func main() {
 	vertexShader.BindVertexAttributes()
 
 	angle := 0.0
-
 	camera := NewFirstPersonCamera()
 
 	for !w.ShouldClose() {
@@ -93,10 +133,6 @@ func main() {
 		input.Update()
 		camera.Update(timer.GetPreviousFrameLength())
 
-		vertexShader.Camera.Set(camera.GetView())
-
-		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-
 		elapsed := timer.GetPreviousFrameLength()
 
 		angle += elapsed
@@ -104,6 +140,37 @@ func main() {
 
 		gl.BindVertexArray(vao)
 
+		// Step 1: Depth Pass
+		gl.BindFramebuffer(gl.FRAMEBUFFER, depthMapFBO)
+		gl.BindProgramPipeline(depthPipeline)
+		gl.Clear(gl.DEPTH_BUFFER_BIT)
+
+		depthVertexShader.View.Set(camera.GetView())
+		depthVertexShader.Projection.Set(window.GetProjection())
+		for x := 0; x < 10; x++ {
+			for y := 0; y < 10; y++ {
+				modelTranslation := mgl32.Translate3D(float32(4*x), 0.0, float32(4*y))
+				depthVertexShader.Model.Set(modelTranslation.Mul4(modelRotation))
+				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
+			}
+		}
+
+		// Step 2: Light Culling
+		lightCullingShader.Use()
+		lightCullingShader.View.Set(camera.GetView())
+		lightCullingShader.Projection.Set(window.GetProjection())
+		lightCullingShader.DepthMap.Set(depthMap)
+		lightCullingShader.ScreenSize.Set(uniforms.IVec2{window.Width, window.Height})
+		lightCullingShader.LightCount.Set(0)
+		gl.UseProgram(0)
+
+		// Step 3: Normal pass
+		gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
+		gl.BindProgramPipeline(normalPipeline)
+		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+		vertexShader.View.Set(camera.GetView())
+		vertexShader.Projection.Set(window.GetProjection())
 		for x := 0; x < 10; x++ {
 			for y := 0; y < 10; y++ {
 				modelTranslation := mgl32.Translate3D(float32(4*x), 0.0, float32(4*y))

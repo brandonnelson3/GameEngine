@@ -1,34 +1,28 @@
-package fragmentshader
+package depthfragmentshader
 
 import (
 	"fmt"
 	"strings"
 
 	"github.com/go-gl/gl/v4.5-core/gl"
-
-	"github.com/brandonnelson3/GameEngine/uniforms"
 )
 
 const (
 	originalFragmentSourceFile = `shader.frag`
 	fragSrc                    = `
 #version 450
-uniform vec4 color;
-out vec4 outputColor;
 void main() {
-    outputColor = color;
+	// We are not drawing anything to the screen, so nothing to be done here
 }` + "\x00"
 )
 
-// FragmentShader represents a FragmentShader
-type FragmentShader struct {
+// DepthFragmentShader represents a FragmentShader
+type DepthFragmentShader struct {
 	uint32
-
-	Color *uniforms.Vector4
 }
 
-// NewFragmentShader instantiates and initializes a FragmentShader object.
-func NewFragmentShader() (*FragmentShader, error) {
+// NewDepthFragmentShader instantiates and initializes a DepthFragmentShader object.
+func NewDepthFragmentShader() (*DepthFragmentShader, error) {
 	program := gl.CreateProgram()
 	shader := gl.CreateShader(gl.FRAGMENT_SHADER)
 
@@ -64,19 +58,16 @@ func NewFragmentShader() (*FragmentShader, error) {
 		return nil, fmt.Errorf("failed to link %v: %v", originalFragmentSourceFile, log)
 	}
 
-	colorLoc := gl.GetUniformLocation(program, gl.Str("color\x00"))
-
 	gl.DeleteShader(shader)
 
 	gl.BindFragDataLocation(program, 0, gl.Str("outputColor\x00"))
 
-	return &FragmentShader{
+	return &DepthFragmentShader{
 		uint32: program,
-		Color:  uniforms.NewVector4(program, colorLoc),
 	}, nil
 }
 
 // AddToPipeline adds this shader to the provided pipeline.
-func (s *FragmentShader) AddToPipeline(pipeline uint32) {
+func (s *DepthFragmentShader) AddToPipeline(pipeline uint32) {
 	gl.UseProgramStages(pipeline, gl.FRAGMENT_SHADER_BIT, s.uint32)
 }

@@ -27,7 +27,7 @@ type FirstPersonCamera struct {
 
 // NewFirstPersonCamera instantiates a new FirstPersonCamera.
 func NewFirstPersonCamera() *FirstPersonCamera {
-	c := &FirstPersonCamera{position: mgl32.Vec3{0, 13, 0}, sensitivity: 0.001, speed: 20}
+	c := &FirstPersonCamera{position: mgl32.Vec3{-23, 30, -23}, horizontalAngle: 5.56, verticalAngle: -0.56, sensitivity: 0.001, speed: 20}
 	messagebus.RegisterType("key", c.handleMovement)
 	messagebus.RegisterType("mouse", c.handleMouse)
 	return c

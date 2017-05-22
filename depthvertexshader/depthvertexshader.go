@@ -1,4 +1,4 @@
-package vertexshader
+package depthvertexshader
 
 import (
 	"fmt"
@@ -26,20 +26,20 @@ void main() {
 }` + "\x00"
 )
 
-// Vertex is a Vertex.
-type Vertex struct {
+// DepthVertex is a Vertex.
+type DepthVertex struct {
 	Vert mgl32.Vec3
 }
 
-// VertexShader is a VertexShader.
-type VertexShader struct {
+// DepthVertexShader is a VertexShader.
+type DepthVertexShader struct {
 	uint32
 
 	Projection, View, Model *uniforms.Matrix4
 }
 
-// NewVertexShader instantiates and initializes a shader object.
-func NewVertexShader() (*VertexShader, error) {
+// NewDepthVertexShader instantiates and initializes a shader object.
+func NewDepthVertexShader() (*DepthVertexShader, error) {
 	program := gl.CreateProgram()
 	shader := gl.CreateShader(gl.VERTEX_SHADER)
 
@@ -81,7 +81,7 @@ func NewVertexShader() (*VertexShader, error) {
 
 	gl.DeleteShader(shader)
 
-	return &VertexShader{
+	return &DepthVertexShader{
 		uint32:     program,
 		Projection: uniforms.NewMatrix4(program, projectionLoc),
 		View:       uniforms.NewMatrix4(program, viewLoc),
@@ -90,12 +90,12 @@ func NewVertexShader() (*VertexShader, error) {
 }
 
 // AddToPipeline adds this shader to the provided pipeline.
-func (s *VertexShader) AddToPipeline(pipeline uint32) {
+func (s *DepthVertexShader) AddToPipeline(pipeline uint32) {
 	gl.UseProgramStages(pipeline, gl.VERTEX_SHADER_BIT, s.uint32)
 }
 
 // BindVertexAttributes binds the attributes per vertex.
-func (s *VertexShader) BindVertexAttributes() {
+func (s *DepthVertexShader) BindVertexAttributes() {
 	vertAttrib := uint32(gl.GetAttribLocation(s.uint32, gl.Str("vert\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
 	gl.VertexAttribPointer(vertAttrib, 3, gl.FLOAT, false, 3*4, gl.PtrOffset(0))

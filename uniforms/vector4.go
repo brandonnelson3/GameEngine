@@ -1,4 +1,4 @@
-package math
+package uniforms
 
 import (
 	"github.com/go-gl/gl/v4.5-core/gl"
