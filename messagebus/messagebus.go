@@ -11,8 +11,9 @@ var (
 
 // Message is a message being transfered.
 type Message struct {
-	Type string
-	Data interface{}
+	System string
+	Type   string
+	Data   interface{}
 }
 
 // MessageHandler is any function which can be registered to receieve messages.

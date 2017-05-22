@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"math"
+	"time"
 
 	"github.com/brandonnelson3/GameEngine/input"
 	"github.com/brandonnelson3/GameEngine/messagebus"
@@ -14,6 +16,13 @@ import (
 const (
 	pi2 = math.Pi / 2.0
 )
+
+// Log is a function that sends a log message every so often about current data of the Camera.
+func (c *FirstPersonCamera) Log() {
+	for range time.Tick(time.Millisecond * 500) {
+		messagebus.SendAsync(&messagebus.Message{System: "Camera", Type: "log", Data: fmt.Sprintf("HorizontalAngle: %f, VerticalAngle: %f, Position: [%f, %f, %f]", c.horizontalAngle, c.verticalAngle, c.position.X(), c.position.Y(), c.position.Z())})
+	}
+}
 
 // FirstPersonCamera is a camera which behaves like a FirstPersonShooter Camera would. WASD control the movement and the mouse controls the direction.
 type FirstPersonCamera struct {

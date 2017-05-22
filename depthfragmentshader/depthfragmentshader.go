@@ -60,8 +60,6 @@ func NewDepthFragmentShader() (*DepthFragmentShader, error) {
 
 	gl.DeleteShader(shader)
 
-	gl.BindFragDataLocation(program, 0, gl.Str("outputColor\x00"))
-
 	return &DepthFragmentShader{
 		uint32: program,
 	}, nil

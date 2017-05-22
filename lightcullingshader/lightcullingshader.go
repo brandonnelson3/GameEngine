@@ -13,6 +13,7 @@ const (
 	fragSrc                    = `
 #version 450
 
+// TODO: Probably can pull this out into a common place.
 struct PointLight {
 	vec4 color;
 	vec4 position;
@@ -59,6 +60,7 @@ void main() {
 	ivec2 tileID = ivec2(gl_WorkGroupID.xy);
 	ivec2 tileNumber = ivec2(gl_NumWorkGroups.xy);
 	uint index = tileID.y * tileNumber.x + tileID.x;
+	/*
 
 	// Initialize shared global values for depth and light count
 	if (gl_LocalInvocationIndex == 0) {
@@ -155,7 +157,7 @@ void main() {
 
 	// One thread should fill the global light buffer
 	if (gl_LocalInvocationIndex == 0) {
-		uint offset = index * 1024; // Determine bosition in global buffer
+		uint offset = index * 1024; // Determine position in global buffer
 		for (uint i = 0; i < visibleLightCount; i++) {
 			visibleLightIndicesBuffer.data[offset + i].index = visibleLightIndices[i];
 		}
@@ -165,6 +167,11 @@ void main() {
 			// Final shader step will use this to determine where to stop (without having to pass the light count)
 			visibleLightIndicesBuffer.data[offset + visibleLightCount].index = -1;
 		}
+	}*/
+
+	if (gl_LocalInvocationIndex == 0) {
+		visibleLightIndicesBuffer.data[index*1024].index = 0;
+		visibleLightIndicesBuffer.data[index*1024+1].index = -1;
 	}
 }` + "\x00"
 )

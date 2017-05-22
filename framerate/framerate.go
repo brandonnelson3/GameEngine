@@ -33,7 +33,7 @@ func log() {
 		}
 
 		averageFrameTime, averageFramesPerSecond := calculateFrameDetails()
-		messagebus.SendSync(&messagebus.Message{Type: "log", Data: fmt.Sprintf("Framerate - Length: %.3f ms - Avg: %.1f FPS Limiting framerate to %d", averageFrameTime*1000, averageFramesPerSecond, framerateCap)})
+		messagebus.SendSync(&messagebus.Message{System: "FrameRate", Type: "log", Data: fmt.Sprintf("Framerate - Length: %.3f ms - Avg: %.1f FPS Limiting framerate to %d", averageFrameTime*1000, averageFramesPerSecond, framerateCap)})
 	}
 }
 

@@ -6,12 +6,16 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 )
 
+const (
+	TileSize = 16
+)
+
 var (
 	// Width is the width of the window.
 	Width = int32(800)
 
 	// Height is the height of the window.
-	Height = int32(600)
+	Height = int32(640)
 
 	// Title is the title of the window.
 	Title = "Game Engine Demo"
@@ -63,4 +67,16 @@ func handleEscape(m *messagebus.Message) {
 			window.SetShouldClose(true)
 		}
 	}
+}
+
+// GetNumTiles returns back the number of tiles in each dimension that are needed for the current window size.
+func GetNumTiles() (int, int) {
+	// TODO: Make this more Robust for non perfect multiples.
+	return int(Height) / TileSize, int(Width) / TileSize
+}
+
+// GetTotalNumTiles returns back the total number of tiles required to cover the entire screen.
+func GetTotalNumTiles() int {
+	x, y := GetNumTiles()
+	return x * y
 }

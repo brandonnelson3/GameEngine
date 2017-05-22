@@ -9,12 +9,15 @@ import (
 	"github.com/go-gl/glfw/v3.1/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 
+	"unsafe"
+
 	"github.com/brandonnelson3/GameEngine/depthfragmentshader"
 	"github.com/brandonnelson3/GameEngine/depthvertexshader"
 	"github.com/brandonnelson3/GameEngine/fragmentshader"
 	"github.com/brandonnelson3/GameEngine/framerate"
 	"github.com/brandonnelson3/GameEngine/input"
 	"github.com/brandonnelson3/GameEngine/lightcullingshader"
+	"github.com/brandonnelson3/GameEngine/lights"
 	"github.com/brandonnelson3/GameEngine/timer"
 	"github.com/brandonnelson3/GameEngine/uniforms"
 	"github.com/brandonnelson3/GameEngine/vertexshader"
@@ -54,6 +57,23 @@ func main() {
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
+
+	var lightBuffer uint32
+	var visibleLightIndicesBuffer uint32
+
+	// Prepare light buffers
+	gl.GenBuffers(1, &lightBuffer)
+	gl.GenBuffers(1, &visibleLightIndicesBuffer)
+
+	// Bind light buffer
+	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, lightBuffer)
+	gl.BufferData(gl.SHADER_STORAGE_BUFFER, lights.MaximumPointLights*int(unsafe.Sizeof(&lights.PointLight{})), unsafe.Pointer(&lights.PointLights), gl.DYNAMIC_DRAW)
+
+	// Bind visible light indices buffer
+	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, visibleLightIndicesBuffer)
+	gl.BufferData(gl.SHADER_STORAGE_BUFFER, window.GetTotalNumTiles()*int(unsafe.Sizeof(&lights.VisibleIndex{}))*lights.MaximumPointLights, nil, gl.STATIC_DRAW)
+
+	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, 0)
 
 	// Build Depth Pipeline
 	depthVertexShader, err := depthvertexshader.NewDepthVertexShader()
@@ -126,6 +146,7 @@ func main() {
 
 	angle := 0.0
 	camera := NewFirstPersonCamera()
+	go camera.Log()
 
 	for !w.ShouldClose() {
 		timer.BeginningOfFrame()
@@ -144,7 +165,6 @@ func main() {
 		gl.BindFramebuffer(gl.FRAMEBUFFER, depthMapFBO)
 		gl.BindProgramPipeline(depthPipeline)
 		gl.Clear(gl.DEPTH_BUFFER_BIT)
-
 		depthVertexShader.View.Set(camera.GetView())
 		depthVertexShader.Projection.Set(window.GetProjection())
 		for x := 0; x < 10; x++ {
@@ -161,21 +181,25 @@ func main() {
 		lightCullingShader.Projection.Set(window.GetProjection())
 		lightCullingShader.DepthMap.Set(depthMap)
 		lightCullingShader.ScreenSize.Set(uniforms.IVec2{window.Width, window.Height})
-		lightCullingShader.LightCount.Set(0)
+		lightCullingShader.LightCount.Set(1)
+		gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, lightBuffer)
+		gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 1, visibleLightIndicesBuffer)
+		gl.DispatchCompute(50, 40, 1)
+		// TODO: Fix this...
+		gl.ActiveTexture(gl.TEXTURE4)
+		gl.BindTexture(gl.TEXTURE_2D, 0)
 		gl.UseProgram(0)
 
 		// Step 3: Normal pass
 		gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 		gl.BindProgramPipeline(normalPipeline)
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-
 		vertexShader.View.Set(camera.GetView())
 		vertexShader.Projection.Set(window.GetProjection())
 		for x := 0; x < 10; x++ {
 			for y := 0; y < 10; y++ {
 				modelTranslation := mgl32.Translate3D(float32(4*x), 0.0, float32(4*y))
 				vertexShader.Model.Set(modelTranslation.Mul4(modelRotation))
-				fragmentShader.Color.Set(mgl32.Vec4{float32(x) / 10, float32(y) / 10, float32(x*y) / 100, 1})
 				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
 			}
 		}
