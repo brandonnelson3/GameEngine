@@ -60,7 +60,7 @@ void main() {
 	ivec2 tileID = ivec2(gl_WorkGroupID.xy);
 	ivec2 tileNumber = ivec2(gl_NumWorkGroups.xy);
 	uint index = tileID.y * tileNumber.x + tileID.x;
-	/*
+	
 
 	// Initialize shared global values for depth and light count
 	if (gl_LocalInvocationIndex == 0) {
@@ -71,6 +71,7 @@ void main() {
 	}
 
 	barrier();
+	/*
 
 	// Step 1: Calculate the minimum and maximum depth values (from the depth buffer) for this group's tile
 	float maxDepth, minDepth;
@@ -168,6 +169,7 @@ void main() {
 			visibleLightIndicesBuffer.data[offset + visibleLightCount].index = -1;
 		}
 	}*/
+
 
 	if (gl_LocalInvocationIndex == 0) {
 		visibleLightIndicesBuffer.data[index*1024].index = 0;

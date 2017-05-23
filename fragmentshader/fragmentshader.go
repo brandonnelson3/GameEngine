@@ -32,8 +32,14 @@ layout(std430, binding = 1) readonly buffer VisibleLightIndicesBuffer {
 	VisibleIndex data[];
 } visibleLightIndicesBuffer;
 
-out vec4 outputColor;
+in VERTEX_OUT
+{
+    vec4 gl_Position;
+	vec3 worldPosition;
+	vec3 normal;
+} fragment_in;
 
+out vec4 outputColor;
 
 void main() {
 	ivec2 location = ivec2(gl_FragCoord.xy);
@@ -45,18 +51,19 @@ void main() {
 
 	// TODO 1024 should be somewhere constant.
 	uint offset = index * 1024;
-	uint i = 0;
-	for (i; i < 1024 && visibleLightIndicesBuffer.data[offset + i].index != -1; i++) {
-		//uint lightIndex = visibleLightIndicesBuffer.data[offset + i].index;
-		//PointLight light = lightBuffer.data[0];
+	vec3 pointLightColor = vec3(0, 0, 0);
+	
+	for (uint i=0; i < 1024 && visibleLightIndicesBuffer.data[offset + i].index != -1; i++) {
+		uint lightIndex = visibleLightIndicesBuffer.data[offset + i].index;
+		PointLight light = lightBuffer.data[lightIndex];
+		vec3 lightVector = light.position.xyz - fragment_in.worldPosition;
+		float dist = length(lightVector);
+		float NdL = max(0.0f, dot(fragment_in.normal, lightVector*(1.0f/dist)));
+		float attenuation = 1.0f - clamp(dist * (1.0/(light.paddingAndRadius.w)), 0.0, 1.0);
+		vec3 diffuse = NdL * light.color.xyz;
+		pointLightColor += attenuation * diffuse + vec3(0.1, 0.1, 0.1);
 	}
-	if (i == 1) {
-		outputColor = vec4(1.0,0,0,1.0);
-	} else {
-		outputColor = vec4(0, 1.0, 0, 1.0);
-	}
-
-	//outputColor = outputColor + vec4(0.2, 0.2, 0.2, 1.0);
+	outputColor = vec4(pointLightColor, 1.0);	
 }` + "\x00"
 )
 
