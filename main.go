@@ -56,6 +56,7 @@ func main() {
 	// Configure global settings
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)
+	gl.DepthMask(true)
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
 	var lightBuffer uint32
@@ -164,7 +165,7 @@ func main() {
 		// Step 1: Depth Pass
 		gl.BindFramebuffer(gl.FRAMEBUFFER, depthMapFBO)
 		gl.BindProgramPipeline(depthPipeline)
-		gl.Clear(gl.DEPTH_BUFFER_BIT)
+		gl.Clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT)
 		depthVertexShader.View.Set(camera.GetView())
 		depthVertexShader.Projection.Set(window.GetProjection())
 		for x := 0; x < 10; x++ {
@@ -181,7 +182,7 @@ func main() {
 		lightCullingShader.Projection.Set(window.GetProjection())
 		lightCullingShader.DepthMap.Set(depthMap)
 		lightCullingShader.ScreenSize.Set(uniforms.IVec2{window.Width, window.Height})
-		lightCullingShader.LightCount.Set(2)
+		lightCullingShader.LightCount.Set(3)
 		gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, lightBuffer)
 		gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 1, visibleLightIndicesBuffer)
 		gl.DispatchCompute(50, 40, 1)

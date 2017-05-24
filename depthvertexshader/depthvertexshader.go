@@ -17,6 +17,7 @@ uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
 in vec3 vert;
+in vec3 norm;
 out gl_PerVertex
 {
     vec4 gl_Position;
@@ -98,5 +99,8 @@ func (s *DepthVertexShader) AddToPipeline(pipeline uint32) {
 func (s *DepthVertexShader) BindVertexAttributes() {
 	vertAttrib := uint32(gl.GetAttribLocation(s.uint32, gl.Str("vert\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
-	gl.VertexAttribPointer(vertAttrib, 3, gl.FLOAT, false, 3*4, gl.PtrOffset(0))
+	gl.VertexAttribPointer(vertAttrib, 3, gl.FLOAT, false, 6*4, gl.PtrOffset(0))
+	normAttrib := uint32(gl.GetAttribLocation(s.uint32, gl.Str("norm\x00")))
+	gl.EnableVertexAttribArray(normAttrib)
+	gl.VertexAttribPointer(normAttrib, 3, gl.FLOAT, false, 6*4, gl.PtrOffset(12))
 }

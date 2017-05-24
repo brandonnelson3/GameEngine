@@ -52,8 +52,9 @@ void main() {
 	// TODO 1024 should be somewhere constant.
 	uint offset = index * 1024;
 	vec3 pointLightColor = vec3(0, 0, 0);
-	
-	for (uint i=0; i < 1024 && visibleLightIndicesBuffer.data[offset + i].index != -1; i++) {
+
+	uint i=0;
+	for (i; i < 1024 && visibleLightIndicesBuffer.data[offset + i].index != -1; i++) {
 		uint lightIndex = visibleLightIndicesBuffer.data[offset + i].index;
 		PointLight light = lightBuffer.data[lightIndex];
 		vec3 lightVector = light.position.xyz - fragment_in.worldPosition;
@@ -61,9 +62,9 @@ void main() {
 		float NdL = max(0.0f, dot(fragment_in.normal, lightVector*(1.0f/dist)));
 		float attenuation = 1.0f - clamp(dist * (1.0/(light.paddingAndRadius.w)), 0.0, 1.0);
 		vec3 diffuse = NdL * light.color.xyz;
-		pointLightColor += attenuation * diffuse + vec3(0.1, 0.1, 0.1);
+		pointLightColor += attenuation * diffuse;
 	}
-	outputColor = vec4(pointLightColor, 1.0);	
+	outputColor = vec4(pointLightColor + vec3(0.1, 0.1, 0.1), 1.0);
 }` + "\x00"
 )
 

@@ -49,10 +49,8 @@ shared vec4 frustumPlanes[6];
 shared int visibleLightIndices[1024];
 shared mat4 viewProjection;
 
-// Took some light culling guidance from Dice's deferred renderer
-// http://www.dice.se/news/directx-11-rendering-battlefield-3/
-
 #define TILE_SIZE 16
+
 layout(local_size_x = TILE_SIZE, local_size_y = TILE_SIZE, local_size_z = 1) in;
 void main() {
 	ivec2 location = ivec2(gl_GlobalInvocationID.xy);
@@ -61,7 +59,6 @@ void main() {
 	ivec2 tileNumber = ivec2(gl_NumWorkGroups.xy);
 	uint index = tileID.y * tileNumber.x + tileID.x;
 	
-
 	// Initialize shared global values for depth and light count
 	if (gl_LocalInvocationIndex == 0) {
 		minDepthInt = 0xFFFFFFFF;
@@ -71,7 +68,6 @@ void main() {
 	}
 
 	barrier();
-	/*
 
 	// Step 1: Calculate the minimum and maximum depth values (from the depth buffer) for this group's tile
 	float maxDepth, minDepth;
@@ -102,7 +98,7 @@ void main() {
 		frustumPlanes[1] = vec4(-1.0, 0.0, 0.0, -1.0 + positiveStep.x); // Right
 		frustumPlanes[2] = vec4(0.0, 1.0, 0.0, 1.0 - negativeStep.y); // Bottom
 		frustumPlanes[3] = vec4(0.0, -1.0, 0.0, -1.0 + positiveStep.y); // Top
-		frustumPlanes[4] = vec4(0.0, 0.0, -1.0, -minDepth); // Near
+		frustumPlanes[4] = vec4(0.0, 0.0, -1.0, minDepth); // Near
 		frustumPlanes[5] = vec4(0.0, 0.0, 1.0, maxDepth); // Far
 
 		// Transform the first four planes
@@ -168,12 +164,6 @@ void main() {
 			// Final shader step will use this to determine where to stop (without having to pass the light count)
 			visibleLightIndicesBuffer.data[offset + visibleLightCount].index = -1;
 		}
-	}*/
-
-
-	if (gl_LocalInvocationIndex == 0) {
-		visibleLightIndicesBuffer.data[index*1024].index = 0;
-		visibleLightIndicesBuffer.data[index*1024+1].index = -1;
 	}
 }` + "\x00"
 )

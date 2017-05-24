@@ -20,8 +20,12 @@ func init() {
 	PointLights[0].PaddingAndRadius = mgl32.Vec4{0.0, 0.0, 0.0, 12.0}
 
 	PointLights[1].Color = mgl32.Vec4{0.0, 0.0, 1.0, 1.0}
-	PointLights[1].Position = mgl32.Vec4{16, 4, 16, 1}
+	PointLights[1].Position = mgl32.Vec4{0, 4, 0, 1}
 	PointLights[1].PaddingAndRadius = mgl32.Vec4{0.0, 0.0, 0.0, 12.0}
+
+	PointLights[2].Color = mgl32.Vec4{1.0, 0.0, 0.0, 1.0}
+	PointLights[2].Position = mgl32.Vec4{16, 4, 16, 1}
+	PointLights[2].PaddingAndRadius = mgl32.Vec4{0.0, 0.0, 0.0, 32.0}
 }
 
 // PointLight represents all of the data about a PointLight.
