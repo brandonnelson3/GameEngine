@@ -21,6 +21,7 @@ const (
 func (c *FirstPersonCamera) Log() {
 	for range time.Tick(time.Millisecond * 500) {
 		messagebus.SendAsync(&messagebus.Message{System: "Camera", Type: "log", Data: fmt.Sprintf("HorizontalAngle: %f, VerticalAngle: %f, Position: [%f, %f, %f]", c.horizontalAngle, c.verticalAngle, c.position.X(), c.position.Y(), c.position.Z())})
+		messagebus.SendAsync(&messagebus.Message{System: "Camera", Type: "log", Data: fmt.Sprintf("position: mgl32.Vec3{%f, %f, %f}, horizontalAngle: %f, verticalAngle: %f", c.position.X(), c.position.Y(), c.position.Z(), c.horizontalAngle, c.verticalAngle)})
 	}
 }
 
@@ -36,7 +37,7 @@ type FirstPersonCamera struct {
 
 // NewFirstPersonCamera instantiates a new FirstPersonCamera.
 func NewFirstPersonCamera() *FirstPersonCamera {
-	c := &FirstPersonCamera{position: mgl32.Vec3{-23, 30, -23}, horizontalAngle: 5.56, verticalAngle: -0.56, sensitivity: 0.001, speed: 20}
+	c := &FirstPersonCamera{position: mgl32.Vec3{-22.585495, 22.307711, -21.923943}, horizontalAngle: 5.506999, verticalAngle: -0.476000, sensitivity: 0.001, speed: 20}
 	messagebus.RegisterType("key", c.handleMovement)
 	messagebus.RegisterType("mouse", c.handleMouse)
 	return c

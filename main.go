@@ -145,7 +145,6 @@ func main() {
 
 	vertexShader.BindVertexAttributes()
 
-	angle := 0.0
 	camera := NewFirstPersonCamera()
 	go camera.Log()
 
@@ -155,26 +154,23 @@ func main() {
 		input.Update()
 		camera.Update(timer.GetPreviousFrameLength())
 
-		elapsed := timer.GetPreviousFrameLength()
-
-		angle += elapsed
-		modelRotation := mgl32.HomogRotate3D(float32(angle), mgl32.Vec3{0, 1, 0})
-
 		gl.BindVertexArray(vao)
 
 		// Step 1: Depth Pass
 		gl.BindFramebuffer(gl.FRAMEBUFFER, depthMapFBO)
 		gl.BindProgramPipeline(depthPipeline)
-		gl.Clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT)
+		gl.Clear(gl.DEPTH_BUFFER_BIT)
 		depthVertexShader.View.Set(camera.GetView())
 		depthVertexShader.Projection.Set(window.GetProjection())
 		for x := 0; x < 10; x++ {
 			for y := 0; y < 10; y++ {
 				modelTranslation := mgl32.Translate3D(float32(4*x), 0.0, float32(4*y))
-				depthVertexShader.Model.Set(modelTranslation.Mul4(modelRotation))
+				modelScale := mgl32.Scale3D(1, 1, 1)
+				depthVertexShader.Model.Set(modelTranslation.Mul4(modelScale))
 				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
 			}
 		}
+		gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 
 		// Step 2: Light Culling
 		lightCullingShader.Use()
@@ -200,8 +196,8 @@ func main() {
 		for x := 0; x < 10; x++ {
 			for y := 0; y < 10; y++ {
 				modelTranslation := mgl32.Translate3D(float32(4*x), 0.0, float32(4*y))
-				vertexShader.Rotation.Set(modelRotation)
-				vertexShader.Model.Set(modelTranslation.Mul4(modelRotation))
+				modelScale := mgl32.Scale3D(1, 1, 1)
+				vertexShader.Model.Set(modelTranslation.Mul4(modelScale))
 				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
 			}
 		}

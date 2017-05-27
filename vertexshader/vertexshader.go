@@ -17,7 +17,6 @@ const (
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
-uniform mat4 rotation;
 
 in vec3 vert;
 in vec3 norm;
@@ -32,7 +31,7 @@ out gl_PerVertex
 void main() {
     gl_Position = projection * view * model * vec4(vert, 1);
 	vertex_out.worldPosition = vec3(model * vec4(vert, 1));
-	vertex_out.normal = vec3(rotation * vec4(norm, 1));
+	vertex_out.normal = vec3(vec4(norm, 1));
 }` + "\x00"
 )
 
@@ -88,7 +87,6 @@ func NewVertexShader() (*VertexShader, error) {
 	projectionLoc := gl.GetUniformLocation(program, gl.Str("projection\x00"))
 	viewLoc := gl.GetUniformLocation(program, gl.Str("view\x00"))
 	modelLoc := gl.GetUniformLocation(program, gl.Str("model\x00"))
-	rotationLoc := gl.GetUniformLocation(program, gl.Str("rotation\x00"))
 
 	gl.DeleteShader(shader)
 
@@ -97,7 +95,6 @@ func NewVertexShader() (*VertexShader, error) {
 		Projection: uniforms.NewMatrix4(program, projectionLoc),
 		View:       uniforms.NewMatrix4(program, viewLoc),
 		Model:      uniforms.NewMatrix4(program, modelLoc),
-		Rotation:   uniforms.NewMatrix4(program, rotationLoc),
 	}, nil
 }
 

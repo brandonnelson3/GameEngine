@@ -52,7 +52,7 @@ void main() {
 	// TODO 1024 should be somewhere constant.
 	uint offset = index * 1024;
 	vec3 pointLightColor = vec3(0, 0, 0);
-
+	
 	uint i=0;
 	for (i; i < 1024 && visibleLightIndicesBuffer.data[offset + i].index != -1; i++) {
 		uint lightIndex = visibleLightIndicesBuffer.data[offset + i].index;
@@ -64,7 +64,8 @@ void main() {
 		vec3 diffuse = NdL * light.color.xyz;
 		pointLightColor += attenuation * diffuse;
 	}
-	outputColor = vec4(pointLightColor + vec3(0.1, 0.1, 0.1), 1.0);
+	outputColor = vec4(pointLightColor+vec3(0.1), 1.0);
+	//outputColor = vec4(vec3(float(i)/3)+vec3(0.1), 1.0);
 }` + "\x00"
 )
 
