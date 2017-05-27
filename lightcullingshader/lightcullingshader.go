@@ -16,8 +16,7 @@ const (
 // TODO: Probably can pull this out into a common place.
 struct PointLight {
 	vec4 color;
-	vec4 position;
-	vec4 paddingAndRadius;
+	vec4 positionAndRadius;
 };
 
 struct VisibleIndex {
@@ -128,8 +127,8 @@ void main() {
 			break;
 		}
 
-		vec4 position = lightBuffer.data[lightIndex].position;
-		float radius = lightBuffer.data[lightIndex].paddingAndRadius.w;
+		vec4 position = vec4(lightBuffer.data[lightIndex].positionAndRadius.xyz, 1.0);
+		float radius = lightBuffer.data[lightIndex].positionAndRadius.w;
 
 		// We check if the light exists in our frustum
 		float distance = 0.0;

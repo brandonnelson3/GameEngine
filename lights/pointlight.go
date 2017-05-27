@@ -16,21 +16,18 @@ var (
 
 func init() {
 	PointLights[0].Color = mgl32.Vec4{1.0, 0.0, 0.0, 1.0}
-	PointLights[0].Position = mgl32.Vec4{0, 3, 0, 1}
-	PointLights[0].PaddingAndRadius = mgl32.Vec4{0.0, 0.0, 0.0, 12.0}
+	PointLights[0].PositionAndRadius = mgl32.Vec4{0, 3, 0, 12}
 
 	PointLights[1].Color = mgl32.Vec4{0.0, 1.0, 0.0, 1.0}
-	PointLights[1].Position = mgl32.Vec4{36, 3, 36, 1}
-	PointLights[1].PaddingAndRadius = mgl32.Vec4{0.0, 0.0, 0.0, 12.0}
+	PointLights[1].PositionAndRadius = mgl32.Vec4{36, 3, 36, 12}
 
-	PointLights[2].Color = mgl32.Vec4{0.0, 1.0, 0.0, 1.0}
-	PointLights[2].Position = mgl32.Vec4{600, 3, 600, 1}
-	PointLights[2].PaddingAndRadius = mgl32.Vec4{0.0, 0.0, 0.0, 12.0}
+	PointLights[2].Color = mgl32.Vec4{0.0, 0.0, 1.0, 1.0}
+	PointLights[2].PositionAndRadius = mgl32.Vec4{200, 3, 200, 32}
 }
 
 // PointLight represents all of the data about a PointLight.
 type PointLight struct {
-	Color, Position, PaddingAndRadius mgl32.Vec4
+	Color, PositionAndRadius mgl32.Vec4
 }
 
 // VisibleIndex is a wrapper around an index.

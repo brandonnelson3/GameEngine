@@ -163,10 +163,10 @@ func main() {
 		gl.Clear(gl.DEPTH_BUFFER_BIT)
 		depthVertexShader.View.Set(camera.GetView())
 		depthVertexShader.Projection.Set(window.GetProjection())
-		for x := 0; x < 10; x++ {
-			for y := 0; y < 10; y++ {
+		for x := 0; x < 1; x++ {
+			for y := 0; y < 1; y++ {
 				modelTranslation := mgl32.Translate3D(float32(4*x), 0.0, float32(4*y))
-				modelScale := mgl32.Scale3D(1, 1, 1)
+				modelScale := mgl32.Scale3D(1000, 1, 1000)
 				depthVertexShader.Model.Set(modelTranslation.Mul4(modelScale))
 				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
 			}
@@ -194,10 +194,10 @@ func main() {
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 		vertexShader.View.Set(camera.GetView())
 		vertexShader.Projection.Set(window.GetProjection())
-		for x := 0; x < 10; x++ {
-			for y := 0; y < 10; y++ {
+		for x := 0; x < 1; x++ {
+			for y := 0; y < 1; y++ {
 				modelTranslation := mgl32.Translate3D(float32(4*x), 0.0, float32(4*y))
-				modelScale := mgl32.Scale3D(1, 1, 1)
+				modelScale := mgl32.Scale3D(1000, 1, 1000)
 				vertexShader.Model.Set(modelTranslation.Mul4(modelScale))
 				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
 			}
