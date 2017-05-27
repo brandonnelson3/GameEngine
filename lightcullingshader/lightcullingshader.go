@@ -71,7 +71,7 @@ void main() {
 
 	// Step 1: Calculate the minimum and maximum depth values (from the depth buffer) for this group's tile
 	float maxDepth, minDepth;
-	vec2 text = vec2(location) / ivec2(800, 640);
+	vec2 text = vec2(location) / screenSize;
 	float depth = texture(depthMap, text).r;
 	// Linearize the depth value from depth buffer (must do this because we created it using projection)
 	depth = (0.5 * projection[3][2]) / (depth + 0.5 * projection[2][2] - 0.5);

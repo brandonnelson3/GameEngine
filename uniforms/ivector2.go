@@ -20,5 +20,5 @@ func NewIVector2(p uint32, u int32) *IVector2 {
 
 // Set Sets this Vector2 to the provided data, and updates the uniform data.
 func (m *IVector2) Set(nv IVec2) {
-	gl.ProgramUniform2iv(m.program, m.uniform, 2, &nv[0])
+	gl.ProgramUniform2iv(m.program, m.uniform, 1, &nv[0])
 }
