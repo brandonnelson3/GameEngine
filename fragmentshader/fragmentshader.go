@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/brandonnelson3/GameEngine/messagebus"
+	"github.com/brandonnelson3/GameEngine/uniforms"
 	"github.com/go-gl/gl/v4.5-core/gl"
+	"github.com/go-gl/glfw/v3.1/glfw"
 )
 
 const (
@@ -32,6 +35,8 @@ layout(std430, binding = 1) readonly buffer VisibleLightIndicesBuffer {
 	VisibleIndex data[];
 } visibleLightIndicesBuffer;
 
+uniform int renderMode;
+
 in VERTEX_OUT
 {
     vec4 gl_Position;
@@ -52,7 +57,7 @@ void main() {
 	// TODO 1024 should be somewhere constant.
 	uint offset = index * 1024;
 	vec3 pointLightColor = vec3(0, 0, 0);
-	
+
 	uint i=0;
 	for (i; i < 1024 && visibleLightIndicesBuffer.data[offset + i].index != -1; i++) {
 		uint lightIndex = visibleLightIndicesBuffer.data[offset + i].index;
@@ -64,14 +69,19 @@ void main() {
 		vec3 diffuse = NdL * light.color.xyz;
 		pointLightColor += attenuation * diffuse;
 	}
-	outputColor = vec4(pointLightColor+vec3(0.1), 1.0);
-	//outputColor = vec4(vec3(float(i)/3)+vec3(0.1), 1.0);
+	if (renderMode == 0) {
+		outputColor = vec4(pointLightColor+vec3(0.1), 1.0);
+	} else if (renderMode == 1) {
+		outputColor = vec4(vec3(float(i)/3)+vec3(0.1), 1.0);
+	}
 }` + "\x00"
 )
 
 // FragmentShader represents a FragmentShader
 type FragmentShader struct {
 	uint32
+
+	RenderMode *uniforms.Int
 }
 
 // NewFragmentShader instantiates and initializes a FragmentShader object.
@@ -111,13 +121,30 @@ func NewFragmentShader() (*FragmentShader, error) {
 		return nil, fmt.Errorf("failed to link %v: %v", originalFragmentSourceFile, log)
 	}
 
+	renderModeLoc := gl.GetUniformLocation(program, gl.Str("renderMode\x00"))
+
 	gl.DeleteShader(shader)
 
 	gl.BindFragDataLocation(program, 0, gl.Str("outputColor\x00"))
 
-	return &FragmentShader{
-		uint32: program,
-	}, nil
+	fs := &FragmentShader{
+		uint32:     program,
+		RenderMode: uniforms.NewInt(program, renderModeLoc),
+	}
+
+	messagebus.RegisterType("key", func(m *messagebus.Message) {
+		pressedKeys := m.Data.([]glfw.Key)
+		for _, key := range pressedKeys {
+			switch key {
+			case glfw.KeyF1:
+				fs.RenderMode.Set(0)
+			case glfw.KeyF2:
+				fs.RenderMode.Set(1)
+			}
+		}
+	})
+
+	return fs, nil
 }
 
 // AddToPipeline adds this shader to the provided pipeline.

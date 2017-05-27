@@ -106,6 +106,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	var normalPipeline uint32
 	gl.CreateProgramPipelines(1, &normalPipeline)
 	vertexShader.AddToPipeline(normalPipeline)
