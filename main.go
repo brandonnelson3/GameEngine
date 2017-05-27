@@ -72,7 +72,7 @@ func main() {
 
 	// Bind visible light indices buffer
 	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, visibleLightIndicesBuffer)
-	gl.BufferData(gl.SHADER_STORAGE_BUFFER, window.GetTotalNumTiles()*int(unsafe.Sizeof(&lights.VisibleIndex{}))*lights.MaximumPointLights, nil, gl.STATIC_DRAW)
+	gl.BufferData(gl.SHADER_STORAGE_BUFFER, int(window.GetTotalNumTiles())*int(unsafe.Sizeof(&lights.VisibleIndex{}))*lights.MaximumPointLights, nil, gl.STATIC_DRAW)
 
 	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, 0)
 
@@ -147,7 +147,6 @@ func main() {
 	vertexShader.BindVertexAttributes()
 
 	camera := NewFirstPersonCamera()
-	go camera.Log()
 
 	for !w.ShouldClose() {
 		timer.BeginningOfFrame()
@@ -163,26 +162,25 @@ func main() {
 		gl.Clear(gl.DEPTH_BUFFER_BIT)
 		depthVertexShader.View.Set(camera.GetView())
 		depthVertexShader.Projection.Set(window.GetProjection())
-		for x := 0; x < 1; x++ {
-			for y := 0; y < 1; y++ {
+		for x := 0; x < 10; x++ {
+			for y := 0; y < 10; y++ {
 				modelTranslation := mgl32.Translate3D(float32(4*x), 0.0, float32(4*y))
-				modelScale := mgl32.Scale3D(1000, 1, 1000)
+				modelScale := mgl32.Scale3D(1, 1, 1)
 				depthVertexShader.Model.Set(modelTranslation.Mul4(modelScale))
 				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
 			}
 		}
-		gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 
 		// Step 2: Light Culling
 		lightCullingShader.Use()
 		lightCullingShader.View.Set(camera.GetView())
 		lightCullingShader.Projection.Set(window.GetProjection())
 		lightCullingShader.DepthMap.Set(depthMap)
-		lightCullingShader.ScreenSize.Set(uniforms.IVec2{window.Width, window.Height})
-		lightCullingShader.LightCount.Set(3)
+		lightCullingShader.ScreenSize.Set(uniforms.UIVec2{window.Width, window.Height})
+		lightCullingShader.LightCount.Set(4)
 		gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, lightBuffer)
 		gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 1, visibleLightIndicesBuffer)
-		gl.DispatchCompute(50, 40, 1)
+		gl.DispatchCompute(window.GetNumTilesX(), window.GetNumTilesY(), 1)
 		// TODO: Fix this...
 		gl.ActiveTexture(gl.TEXTURE4)
 		gl.BindTexture(gl.TEXTURE_2D, 0)
@@ -194,10 +192,11 @@ func main() {
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 		vertexShader.View.Set(camera.GetView())
 		vertexShader.Projection.Set(window.GetProjection())
-		for x := 0; x < 1; x++ {
-			for y := 0; y < 1; y++ {
+		fragmentShader.NumTilesX.Set(window.GetNumTilesX())
+		for x := 0; x < 10; x++ {
+			for y := 0; y < 10; y++ {
 				modelTranslation := mgl32.Translate3D(float32(4*x), 0.0, float32(4*y))
-				modelScale := mgl32.Scale3D(1000, 1, 1000)
+				modelScale := mgl32.Scale3D(1, 1, 1)
 				vertexShader.Model.Set(modelTranslation.Mul4(modelScale))
 				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
 			}

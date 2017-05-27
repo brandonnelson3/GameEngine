@@ -16,7 +16,7 @@ func NewMatrix4(p uint32, u int32) *Matrix4 {
 	return &Matrix4{p, u}
 }
 
-// Set Sets this Matrix4 to the provided data, and updates the uniform data.
+// Set sets this Matrix4 to the provided data, and updates the uniform data.
 func (m *Matrix4) Set(nm mgl32.Mat4) {
 	gl.ProgramUniformMatrix4fv(m.program, m.uniform, 1, false, &nm[0])
 }

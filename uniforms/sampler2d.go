@@ -15,7 +15,7 @@ func NewSampler2D(p uint32, u int32) *Sampler2D {
 	return &Sampler2D{p, u}
 }
 
-// Set Sets this Sampler2D to the provided id, and updates the uniform data.
+// Set sets this Sampler2D to the provided id, and updates the uniform data.
 func (m *Sampler2D) Set(samplerID uint32) {
 	gl.ActiveTexture(gl.TEXTURE4)
 	gl.Uniform1i(m.uniform, 4)

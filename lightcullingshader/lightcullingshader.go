@@ -70,7 +70,7 @@ void main() {
 
 	// Step 1: Calculate the minimum and maximum depth values (from the depth buffer) for this group's tile
 	float maxDepth, minDepth;
-	vec2 text = vec2(location) / screenSize;
+	vec2 text = vec2(location) / ivec2(1920, 1080);//screenSize;
 	float depth = texture(depthMap, text).r;
 	// Linearize the depth value from depth buffer (must do this because we created it using projection)
 	depth = (0.5 * projection[3][2]) / (depth + 0.5 * projection[2][2] - 0.5);
@@ -173,7 +173,7 @@ type LightCullingShader struct {
 
 	DepthMap         *uniforms.Sampler2D
 	Projection, View *uniforms.Matrix4
-	ScreenSize       *uniforms.IVector2
+	ScreenSize       *uniforms.UIVector2
 	LightCount       *uniforms.Int
 }
 
@@ -226,7 +226,7 @@ func NewLightCullingShader() (*LightCullingShader, error) {
 		DepthMap:   uniforms.NewSampler2D(program, depthMapLoc),
 		Projection: uniforms.NewMatrix4(program, projectionLoc),
 		View:       uniforms.NewMatrix4(program, viewLoc),
-		ScreenSize: uniforms.NewIVector2(program, screenSizeLoc),
+		ScreenSize: uniforms.NewUIVector2(program, screenSizeLoc),
 		LightCount: uniforms.NewInt(program, lightCountLoc),
 	}, nil
 }

@@ -35,6 +35,7 @@ layout(std430, binding = 1) readonly buffer VisibleLightIndicesBuffer {
 } visibleLightIndicesBuffer;
 
 uniform int renderMode;
+uniform uint numTilesX;
 
 in VERTEX_OUT
 {
@@ -49,9 +50,7 @@ void main() {
 	ivec2 location = ivec2(gl_FragCoord.xy);
 	// TODO: Put this 16 somewhere constant.
 	ivec2 tileID = location / ivec2(16, 16);
-	// TODO: Pass in numberOfTilesX as a uniform.
-	uint numberOfTilesX = 50;
-	uint index = tileID.y * numberOfTilesX + tileID.x;
+	uint index = tileID.y * numTilesX + tileID.x;
 
 	// TODO 1024 should be somewhere constant.
 	uint offset = index * 1024;
@@ -71,7 +70,7 @@ void main() {
 	if (renderMode == 0) {
 		outputColor = vec4(pointLightColor+vec3(0.1), 1.0);
 	} else if (renderMode == 1) {
-		outputColor = vec4(vec3(float(i)/3)+vec3(0.1), 1.0);
+		outputColor = vec4(vec3(float(i)/4)+vec3(0.1), 1.0);
 	}
 }` + "\x00"
 )
@@ -81,6 +80,7 @@ type FragmentShader struct {
 	uint32
 
 	RenderMode *uniforms.Int
+	NumTilesX  *uniforms.UInt
 }
 
 // NewFragmentShader instantiates and initializes a FragmentShader object.
@@ -121,6 +121,7 @@ func NewFragmentShader() (*FragmentShader, error) {
 	}
 
 	renderModeLoc := gl.GetUniformLocation(program, gl.Str("renderMode\x00"))
+	numTilesXLoc := gl.GetUniformLocation(program, gl.Str("numTilesX\x00"))
 
 	gl.DeleteShader(shader)
 
@@ -129,6 +130,7 @@ func NewFragmentShader() (*FragmentShader, error) {
 	fs := &FragmentShader{
 		uint32:     program,
 		RenderMode: uniforms.NewInt(program, renderModeLoc),
+		NumTilesX:  uniforms.NewUInt(program, numTilesXLoc),
 	}
 
 	messagebus.RegisterType("key", func(m *messagebus.Message) {
