@@ -36,7 +36,7 @@ layout(std430, binding = 1) writeonly buffer VisibleLightIndicesBuffer {
 uniform sampler2D depthMap;
 uniform mat4 view;
 uniform mat4 projection;
-uniform ivec2 screenSize;
+uniform uvec2 screenSize;
 uniform int lightCount;
 
 // Shared values between all the threads in the group
@@ -70,7 +70,7 @@ void main() {
 
 	// Step 1: Calculate the minimum and maximum depth values (from the depth buffer) for this group's tile
 	float maxDepth, minDepth;
-	vec2 text = vec2(location) / ivec2(1920, 1080);//screenSize;
+	vec2 text = vec2(location) / screenSize;
 	float depth = texture(depthMap, text).r;
 	// Linearize the depth value from depth buffer (must do this because we created it using projection)
 	depth = (0.5 * projection[3][2]) / (depth + 0.5 * projection[2][2] - 0.5);
