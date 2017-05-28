@@ -16,9 +16,10 @@ const (
 
 var (
 	// PointLights are the current pointlights in the scene.
-	PointLights    [MaximumPointLights]PointLight
-	numPointLights = uint32(0)
-	mu             sync.Mutex
+	PointLights         [MaximumPointLights]PointLight
+	numPointLights      = uint32(0)
+	nextPointLightIndex = uint32(0)
+	mu                  sync.Mutex
 
 	lightBuffer, visibleLightIndicesBuffer uint32
 )
@@ -68,12 +69,20 @@ func GetNumPointLights() uint32 {
 func AddPointLight(position, color mgl32.Vec3, intensity, radius float32) {
 	mu.Lock()
 
-	PointLights[numPointLights].Color = color
-	PointLights[numPointLights].Intensity = intensity
-	PointLights[numPointLights].Position = position
-	PointLights[numPointLights].Radius = radius
+	PointLights[nextPointLightIndex].Color = color
+	PointLights[nextPointLightIndex].Intensity = intensity
+	PointLights[nextPointLightIndex].Position = position
+	PointLights[nextPointLightIndex].Radius = radius
 
 	numPointLights++
+	nextPointLightIndex++
+
+	if numPointLights >= MaximumPointLights {
+		numPointLights = MaximumPointLights - 1
+	}
+	if nextPointLightIndex >= MaximumPointLights {
+		nextPointLightIndex = 0
+	}
 
 	mu.Unlock()
 
