@@ -23,8 +23,8 @@ type DirectionalLight struct {
 // InitDirectionalLights sets up buffer space for storage of Directional Light data.
 func InitDirectionalLights() {
 	directionalLight = DirectionalLight{
-		Color:      mgl32.Vec3{1, 1, 1},
-		Brightness: 0.1,
+		Color:      mgl32.Vec3{1, 1, .8},
+		Brightness: 0.35,
 		Direction:  mgl32.Vec3{0, -1, 0},
 	}
 

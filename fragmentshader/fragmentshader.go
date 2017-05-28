@@ -49,12 +49,14 @@ layout(std430, binding = 2) readonly buffer DirectionalLightBuffer {
 
 uniform int renderMode;
 uniform uint numTilesX;
+uniform sampler2D diffuse;
 
 in VERTEX_OUT
 {
     vec4 gl_Position;
 	vec3 worldPosition;
 	vec3 normal;
+	vec2 uv;
 } fragment_in;
 
 out vec4 outputColor;
@@ -86,12 +88,16 @@ void main() {
 	vec3 directionalLightColor = NdL * directionalLight.color * directionalLight.brightness;
 
 	if (renderMode == 0) {
-		outputColor = vec4(pointLightColor+directionalLightColor, 1.0);
+		outputColor = texture(diffuse, fragment_in.uv) * vec4(pointLightColor+directionalLightColor, 1.0);
 	} else if (renderMode == 1) {
 		outputColor = vec4(vec3(float(i)/256)+vec3(0.1), 1.0);
 	} else if (renderMode == 2) {
 		outputColor = vec4(abs(fragment_in.normal), 1.0);
-	}
+	} else if (renderMode == 3) {
+		outputColor = vec4(fragment_in.uv, 0, 1.0);
+	} else if (renderMode == 4) {
+		outputColor = texture(diffuse, fragment_in.uv);
+	}	
 }` + "\x00"
 )
 
@@ -101,6 +107,7 @@ type FragmentShader struct {
 
 	RenderMode *uniforms.Int
 	NumTilesX  *uniforms.UInt
+	Diffuse    *uniforms.Sampler2D
 
 	LightBuffer, VisibleLightIndicesBuffer, DirectionalLightBuffer *buffers.Binding
 }
@@ -144,6 +151,7 @@ func NewFragmentShader() (*FragmentShader, error) {
 
 	renderModeLoc := gl.GetUniformLocation(program, gl.Str("renderMode\x00"))
 	numTilesXLoc := gl.GetUniformLocation(program, gl.Str("numTilesX\x00"))
+	diffuseLoc := gl.GetUniformLocation(program, gl.Str("diffuse\x00"))
 
 	gl.DeleteShader(shader)
 
@@ -153,6 +161,7 @@ func NewFragmentShader() (*FragmentShader, error) {
 		uint32:                    program,
 		RenderMode:                uniforms.NewInt(program, renderModeLoc),
 		NumTilesX:                 uniforms.NewUInt(program, numTilesXLoc),
+		Diffuse:                   uniforms.NewSampler2D(program, diffuseLoc),
 		LightBuffer:               buffers.NewBinding(0),
 		VisibleLightIndicesBuffer: buffers.NewBinding(1),
 		DirectionalLightBuffer:    buffers.NewBinding(2),
@@ -161,13 +170,8 @@ func NewFragmentShader() (*FragmentShader, error) {
 	messagebus.RegisterType("key", func(m *messagebus.Message) {
 		pressedKeys := m.Data1.([]glfw.Key)
 		for _, key := range pressedKeys {
-			switch key {
-			case glfw.KeyF1:
-				fs.RenderMode.Set(0)
-			case glfw.KeyF2:
-				fs.RenderMode.Set(1)
-			case glfw.KeyF3:
-				fs.RenderMode.Set(2)
+			if key >= glfw.KeyF1 && key <= glfw.KeyF25 {
+				fs.RenderMode.Set(int32(key - glfw.KeyF1))
 			}
 		}
 	})

@@ -20,24 +20,28 @@ uniform mat4 model;
 
 in vec3 vert;
 in vec3 norm;
+in vec2 uv;
 
 out gl_PerVertex
 {
     vec4 gl_Position;
 	vec3 worldPosition;
 	vec3 normal;
+	vec2 uv;
 } vertex_out;
 
 void main() {
     gl_Position = projection * view * model * vec4(vert, 1);
 	vertex_out.worldPosition = vec3(model * vec4(vert, 1));
 	vertex_out.normal = vec3(vec4(norm, 1));
+	vertex_out.uv = uv;
 }` + "\x00"
 )
 
 // Vertex is a Vertex.
 type Vertex struct {
 	Vert, Norm mgl32.Vec3
+	UV         mgl32.Vec2
 }
 
 // VertexShader is a VertexShader.
@@ -107,8 +111,11 @@ func (s *VertexShader) AddToPipeline(pipeline uint32) {
 func (s *VertexShader) BindVertexAttributes() {
 	vertAttrib := uint32(gl.GetAttribLocation(s.uint32, gl.Str("vert\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
-	gl.VertexAttribPointer(vertAttrib, 3, gl.FLOAT, false, 6*4, gl.PtrOffset(0))
+	gl.VertexAttribPointer(vertAttrib, 3, gl.FLOAT, false, 8*4, gl.PtrOffset(0))
 	normAttrib := uint32(gl.GetAttribLocation(s.uint32, gl.Str("norm\x00")))
 	gl.EnableVertexAttribArray(normAttrib)
-	gl.VertexAttribPointer(normAttrib, 3, gl.FLOAT, false, 6*4, gl.PtrOffset(12))
+	gl.VertexAttribPointer(normAttrib, 3, gl.FLOAT, false, 8*4, gl.PtrOffset(12))
+	uvAttrib := uint32(gl.GetAttribLocation(s.uint32, gl.Str("uv\x00")))
+	gl.EnableVertexAttribArray(uvAttrib)
+	gl.VertexAttribPointer(uvAttrib, 2, gl.FLOAT, false, 8*4, gl.PtrOffset(24))
 }

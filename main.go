@@ -17,6 +17,7 @@ import (
 	"github.com/brandonnelson3/GameEngine/lightcullingshader"
 	"github.com/brandonnelson3/GameEngine/lights"
 	"github.com/brandonnelson3/GameEngine/messagebus"
+	"github.com/brandonnelson3/GameEngine/textures"
 	"github.com/brandonnelson3/GameEngine/timer"
 	"github.com/brandonnelson3/GameEngine/uniforms"
 	"github.com/brandonnelson3/GameEngine/vertexshader"
@@ -55,11 +56,17 @@ func main() {
 	// Configure global settings
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)
+	gl.Enable(gl.MULTISAMPLE)
 	gl.DepthMask(true)
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
 	lights.InitPointLights()
 	lights.InitDirectionalLights()
+
+	diffuseTexture, err := textures.NewFromPng("crate1_diffuse.png")
+	if err != nil {
+		panic(err)
+	}
 
 	// Build Depth Pipeline
 	depthVertexShader, err := depthvertexshader.NewDepthVertexShader()
@@ -127,7 +134,7 @@ func main() {
 	var cubeVbo uint32
 	gl.GenBuffers(1, &cubeVbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, cubeVbo)
-	gl.BufferData(gl.ARRAY_BUFFER, len(cubeVertices)*6*4, gl.Ptr(cubeVertices), gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, len(cubeVertices)*8*4, gl.Ptr(cubeVertices), gl.STATIC_DRAW)
 
 	vertexShader.BindVertexAttributes()
 
@@ -138,7 +145,7 @@ func main() {
 	var planeVbo uint32
 	gl.GenBuffers(1, &planeVbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, planeVbo)
-	gl.BufferData(gl.ARRAY_BUFFER, len(planeVertices)*6*4, gl.Ptr(planeVertices), gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, len(planeVertices)*8*4, gl.Ptr(planeVertices), gl.STATIC_DRAW)
 
 	vertexShader.BindVertexAttributes()
 
@@ -174,15 +181,15 @@ func main() {
 				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
 			}
 		}
-		depthVertexShader.Model.Set(mgl32.Ident4())
-		gl.BindVertexArray(planeVao)
-		gl.DrawArrays(gl.TRIANGLES, 0, 2*3)
+		//depthVertexShader.Model.Set(mgl32.Ident4())
+		//gl.BindVertexArray(planeVao)
+		//gl.DrawArrays(gl.TRIANGLES, 0, 2*3)
 
 		// Step 2: Light Culling
 		lightCullingShader.Use()
 		lightCullingShader.View.Set(camera.GetView())
 		lightCullingShader.Projection.Set(window.GetProjection())
-		lightCullingShader.DepthMap.Set(depthMap)
+		lightCullingShader.DepthMap.Set(4, depthMap)
 		lightCullingShader.ScreenSize.Set(uniforms.UIVec2{window.Width, window.Height})
 		lightCullingShader.LightCount.Set(lights.GetNumPointLights())
 		lightCullingShader.LightBuffer.Set(lights.GetPointLightBuffer())
@@ -203,6 +210,7 @@ func main() {
 		fragmentShader.LightBuffer.Set(lights.GetPointLightBuffer())
 		fragmentShader.VisibleLightIndicesBuffer.Set(lights.GetPointLightVisibleLightIndicesBuffer())
 		fragmentShader.DirectionalLightBuffer.Set(lights.GetDirectionalLightBuffer())
+		fragmentShader.Diffuse.Set(0, diffuseTexture)
 		gl.BindVertexArray(cubeVao)
 		for x := 0; x < 10; x++ {
 			for y := 0; y < 10; y++ {
@@ -211,9 +219,9 @@ func main() {
 				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
 			}
 		}
-		vertexShader.Model.Set(mgl32.Ident4())
-		gl.BindVertexArray(planeVao)
-		gl.DrawArrays(gl.TRIANGLES, 0, 2*3)
+		//vertexShader.Model.Set(mgl32.Ident4())
+		//gl.BindVertexArray(planeVao)
+		//gl.DrawArrays(gl.TRIANGLES, 0, 2*3)
 
 		// Maintenance
 		w.SwapBuffers()
@@ -225,61 +233,61 @@ func main() {
 }
 
 var planeVertices = []vertexshader.Vertex{
-	{mgl32.Vec3{-1000.0, 0, -1000.0}, mgl32.Vec3{0, 1.0, 0}},
-	{mgl32.Vec3{1000.0, 0, -1000.0}, mgl32.Vec3{0, 1.0, 0}},
-	{mgl32.Vec3{-1000.0, 0, 1000.0}, mgl32.Vec3{0, 1.0, 0}},
-	{mgl32.Vec3{1000.0, 0, -1000.0}, mgl32.Vec3{0, 1.0, 0}},
-	{mgl32.Vec3{1000.0, 0, 1000.0}, mgl32.Vec3{0, 1.0, 0}},
-	{mgl32.Vec3{-1000.0, 0, 1000.0}, mgl32.Vec3{0, 1.0, 0}},
+	{mgl32.Vec3{-1000.0, 0, -1000.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{0, 0}},
+	{mgl32.Vec3{1000.0, 0, -1000.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{0, 1}},
+	{mgl32.Vec3{-1000.0, 0, 1000.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{1, 0}},
+	{mgl32.Vec3{1000.0, 0, -1000.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{1, 0}},
+	{mgl32.Vec3{1000.0, 0, 1000.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{0, 1}},
+	{mgl32.Vec3{-1000.0, 0, 1000.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{1, 1}},
 }
 
 var cubeVertices = []vertexshader.Vertex{
 	//  X, Y, Z
 	// Bottom
-	{mgl32.Vec3{-1.0, -1.0, -1.0}, mgl32.Vec3{0, -1.0, 0}},
-	{mgl32.Vec3{1.0, -1.0, -1.0}, mgl32.Vec3{0, -1.0, 0}},
-	{mgl32.Vec3{-1.0, -1.0, 1.0}, mgl32.Vec3{0, -1.0, 0}},
-	{mgl32.Vec3{1.0, -1.0, -1.0}, mgl32.Vec3{0, -1.0, 0}},
-	{mgl32.Vec3{1.0, -1.0, 1.0}, mgl32.Vec3{0, -1.0, 0}},
-	{mgl32.Vec3{-1.0, -1.0, 1.0}, mgl32.Vec3{0, -1.0, 0}},
+	{mgl32.Vec3{-1.0, -1.0, -1.0}, mgl32.Vec3{0, -1.0, 0}, mgl32.Vec2{0, 0}},
+	{mgl32.Vec3{1.0, -1.0, -1.0}, mgl32.Vec3{0, -1.0, 0}, mgl32.Vec2{1, 0}},
+	{mgl32.Vec3{-1.0, -1.0, 1.0}, mgl32.Vec3{0, -1.0, 0}, mgl32.Vec2{0, 1}},
+	{mgl32.Vec3{1.0, -1.0, -1.0}, mgl32.Vec3{0, -1.0, 0}, mgl32.Vec2{1, 0}},
+	{mgl32.Vec3{1.0, -1.0, 1.0}, mgl32.Vec3{0, -1.0, 0}, mgl32.Vec2{1, 1}},
+	{mgl32.Vec3{-1.0, -1.0, 1.0}, mgl32.Vec3{0, -1.0, 0}, mgl32.Vec2{0, 1}},
 
 	// Top
-	{mgl32.Vec3{-1.0, 1.0, -1.0}, mgl32.Vec3{0, 1.0, 0}},
-	{mgl32.Vec3{-1.0, 1.0, 1.0}, mgl32.Vec3{0, 1.0, 0}},
-	{mgl32.Vec3{1.0, 1.0, -1.0}, mgl32.Vec3{0, 1.0, 0}},
-	{mgl32.Vec3{1.0, 1.0, -1.0}, mgl32.Vec3{0, 1.0, 0}},
-	{mgl32.Vec3{-1.0, 1.0, 1.0}, mgl32.Vec3{0, 1.0, 0}},
-	{mgl32.Vec3{1.0, 1.0, 1.0}, mgl32.Vec3{0, 1.0, 0}},
+	{mgl32.Vec3{-1.0, 1.0, -1.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{0, 0}},
+	{mgl32.Vec3{-1.0, 1.0, 1.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{0, 1}},
+	{mgl32.Vec3{1.0, 1.0, -1.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{1, 0}},
+	{mgl32.Vec3{1.0, 1.0, -1.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{1, 0}},
+	{mgl32.Vec3{-1.0, 1.0, 1.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{0, 1}},
+	{mgl32.Vec3{1.0, 1.0, 1.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{1, 1}},
 
 	// Front
-	{mgl32.Vec3{-1.0, -1.0, 1.0}, mgl32.Vec3{0, 0, 1.0}},
-	{mgl32.Vec3{1.0, -1.0, 1.0}, mgl32.Vec3{0, 0, 1.0}},
-	{mgl32.Vec3{-1.0, 1.0, 1.0}, mgl32.Vec3{0, 0, 1.0}},
-	{mgl32.Vec3{1.0, -1.0, 1.0}, mgl32.Vec3{0, 0, 1.0}},
-	{mgl32.Vec3{1.0, 1.0, 1.0}, mgl32.Vec3{0, 0, 1.0}},
-	{mgl32.Vec3{-1.0, 1.0, 1.0}, mgl32.Vec3{0, 0, 1.0}},
+	{mgl32.Vec3{-1.0, -1.0, 1.0}, mgl32.Vec3{0, 0, 1.0}, mgl32.Vec2{1, 0}},
+	{mgl32.Vec3{1.0, -1.0, 1.0}, mgl32.Vec3{0, 0, 1.0}, mgl32.Vec2{0, 0}},
+	{mgl32.Vec3{-1.0, 1.0, 1.0}, mgl32.Vec3{0, 0, 1.0}, mgl32.Vec2{1, 1}},
+	{mgl32.Vec3{1.0, -1.0, 1.0}, mgl32.Vec3{0, 0, 1.0}, mgl32.Vec2{0, 0}},
+	{mgl32.Vec3{1.0, 1.0, 1.0}, mgl32.Vec3{0, 0, 1.0}, mgl32.Vec2{0, 1}},
+	{mgl32.Vec3{-1.0, 1.0, 1.0}, mgl32.Vec3{0, 0, 1.0}, mgl32.Vec2{1, 1}},
 
 	// Back
-	{mgl32.Vec3{-1.0, -1.0, -1.0}, mgl32.Vec3{0, 0, -1.0}},
-	{mgl32.Vec3{-1.0, 1.0, -1.0}, mgl32.Vec3{0, 0, -1.0}},
-	{mgl32.Vec3{1.0, -1.0, -1.0}, mgl32.Vec3{0, 0, -1.0}},
-	{mgl32.Vec3{1.0, -1.0, -1.0}, mgl32.Vec3{0, 0, -1.0}},
-	{mgl32.Vec3{-1.0, 1.0, -1.0}, mgl32.Vec3{0, 0, -1.0}},
-	{mgl32.Vec3{1.0, 1.0, -1.0}, mgl32.Vec3{0, 0, -1.0}},
+	{mgl32.Vec3{-1.0, -1.0, -1.0}, mgl32.Vec3{0, 0, -1.0}, mgl32.Vec2{0, 0}},
+	{mgl32.Vec3{-1.0, 1.0, -1.0}, mgl32.Vec3{0, 0, -1.0}, mgl32.Vec2{0, 1}},
+	{mgl32.Vec3{1.0, -1.0, -1.0}, mgl32.Vec3{0, 0, -1.0}, mgl32.Vec2{1, 0}},
+	{mgl32.Vec3{1.0, -1.0, -1.0}, mgl32.Vec3{0, 0, -1.0}, mgl32.Vec2{1, 0}},
+	{mgl32.Vec3{-1.0, 1.0, -1.0}, mgl32.Vec3{0, 0, -1.0}, mgl32.Vec2{0, 1}},
+	{mgl32.Vec3{1.0, 1.0, -1.0}, mgl32.Vec3{0, 0, -1.0}, mgl32.Vec2{1, 1}},
 
 	// Left
-	{mgl32.Vec3{-1.0, -1.0, 1.0}, mgl32.Vec3{-1.0, 0, 0}},
-	{mgl32.Vec3{-1.0, 1.0, -1.0}, mgl32.Vec3{-1.0, 0, 0}},
-	{mgl32.Vec3{-1.0, -1.0, -1.0}, mgl32.Vec3{-1.0, 0, 0}},
-	{mgl32.Vec3{-1.0, -1.0, 1.0}, mgl32.Vec3{-1.0, 0, 0}},
-	{mgl32.Vec3{-1.0, 1.0, 1.0}, mgl32.Vec3{-1.0, 0, 0}},
-	{mgl32.Vec3{-1.0, 1.0, -1.0}, mgl32.Vec3{-1.0, 0, 0}},
+	{mgl32.Vec3{-1.0, -1.0, 1.0}, mgl32.Vec3{-1.0, 0, 0}, mgl32.Vec2{0, 1}},
+	{mgl32.Vec3{-1.0, 1.0, -1.0}, mgl32.Vec3{-1.0, 0, 0}, mgl32.Vec2{1, 0}},
+	{mgl32.Vec3{-1.0, -1.0, -1.0}, mgl32.Vec3{-1.0, 0, 0}, mgl32.Vec2{0, 0}},
+	{mgl32.Vec3{-1.0, -1.0, 1.0}, mgl32.Vec3{-1.0, 0, 0}, mgl32.Vec2{0, 1}},
+	{mgl32.Vec3{-1.0, 1.0, 1.0}, mgl32.Vec3{-1.0, 0, 0}, mgl32.Vec2{1, 1}},
+	{mgl32.Vec3{-1.0, 1.0, -1.0}, mgl32.Vec3{-1.0, 0, 0}, mgl32.Vec2{1, 0}},
 
 	// Right
-	{mgl32.Vec3{1.0, -1.0, 1.0}, mgl32.Vec3{1.0, 0, 0}},
-	{mgl32.Vec3{1.0, -1.0, -1.0}, mgl32.Vec3{1.0, 0, 0}},
-	{mgl32.Vec3{1.0, 1.0, -1.0}, mgl32.Vec3{1.0, 0, 0}},
-	{mgl32.Vec3{1.0, -1.0, 1.0}, mgl32.Vec3{1.0, 0, 0}},
-	{mgl32.Vec3{1.0, 1.0, -1.0}, mgl32.Vec3{1.0, 0, 0}},
-	{mgl32.Vec3{1.0, 1.0, 1.0}, mgl32.Vec3{1.0, 0, 0}},
+	{mgl32.Vec3{1.0, -1.0, 1.0}, mgl32.Vec3{1.0, 0, 0}, mgl32.Vec2{1, 1}},
+	{mgl32.Vec3{1.0, -1.0, -1.0}, mgl32.Vec3{1.0, 0, 0}, mgl32.Vec2{1, 0}},
+	{mgl32.Vec3{1.0, 1.0, -1.0}, mgl32.Vec3{1.0, 0, 0}, mgl32.Vec2{0, 0}},
+	{mgl32.Vec3{1.0, -1.0, 1.0}, mgl32.Vec3{1.0, 0, 0}, mgl32.Vec2{1, 1}},
+	{mgl32.Vec3{1.0, 1.0, -1.0}, mgl32.Vec3{1.0, 0, 0}, mgl32.Vec2{0, 0}},
+	{mgl32.Vec3{1.0, 1.0, 1.0}, mgl32.Vec3{1.0, 0, 0}, mgl32.Vec2{0, 1}},
 }
