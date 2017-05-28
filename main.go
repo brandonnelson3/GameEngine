@@ -118,14 +118,25 @@ func main() {
 	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 
 	// Configure the vertex data
-	var vao uint32
-	gl.GenVertexArrays(1, &vao)
-	gl.BindVertexArray(vao)
+	var cubeVao uint32
+	gl.GenVertexArrays(1, &cubeVao)
+	gl.BindVertexArray(cubeVao)
 
-	var vbo uint32
-	gl.GenBuffers(1, &vbo)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
+	var cubeVbo uint32
+	gl.GenBuffers(1, &cubeVbo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, cubeVbo)
 	gl.BufferData(gl.ARRAY_BUFFER, len(cubeVertices)*6*4, gl.Ptr(cubeVertices), gl.STATIC_DRAW)
+
+	vertexShader.BindVertexAttributes()
+
+	var planeVao uint32
+	gl.GenVertexArrays(1, &planeVao)
+	gl.BindVertexArray(planeVao)
+
+	var planeVbo uint32
+	gl.GenBuffers(1, &planeVbo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, planeVbo)
+	gl.BufferData(gl.ARRAY_BUFFER, len(planeVertices)*6*4, gl.Ptr(planeVertices), gl.STATIC_DRAW)
 
 	vertexShader.BindVertexAttributes()
 
@@ -137,21 +148,23 @@ func main() {
 		input.Update()
 		camera.Update(timer.GetPreviousFrameLength())
 
-		gl.BindVertexArray(vao)
-
 		// Step 1: Depth Pass
 		gl.BindFramebuffer(gl.FRAMEBUFFER, depthMapFBO)
 		gl.BindProgramPipeline(depthPipeline)
 		gl.Clear(gl.DEPTH_BUFFER_BIT)
 		depthVertexShader.View.Set(camera.GetView())
 		depthVertexShader.Projection.Set(window.GetProjection())
+		gl.BindVertexArray(cubeVao)
 		for x := 0; x < 10; x++ {
 			for y := 0; y < 10; y++ {
-				modelTranslation := mgl32.Translate3D(float32(4*x), 0.0, float32(4*y))
+				modelTranslation := mgl32.Translate3D(float32(4*x), 5.0, float32(4*y))
 				depthVertexShader.Model.Set(modelTranslation)
 				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
 			}
 		}
+		depthVertexShader.Model.Set(mgl32.Ident4())
+		gl.BindVertexArray(planeVao)
+		gl.DrawArrays(gl.TRIANGLES, 0, 2*3)
 
 		// Step 2: Light Culling
 		lightCullingShader.Use()
@@ -177,13 +190,17 @@ func main() {
 		fragmentShader.NumTilesX.Set(window.GetNumTilesX())
 		fragmentShader.LightBuffer.Set(lights.GetPointLightBuffer())
 		fragmentShader.VisibleLightIndicesBuffer.Set(lights.GetPointLightVisibleLightIndicesBuffer())
+		gl.BindVertexArray(cubeVao)
 		for x := 0; x < 10; x++ {
 			for y := 0; y < 10; y++ {
-				modelTranslation := mgl32.Translate3D(float32(4*x), 0.0, float32(4*y))
+				modelTranslation := mgl32.Translate3D(float32(4*x), 5.0, float32(4*y))
 				vertexShader.Model.Set(modelTranslation)
 				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
 			}
 		}
+		vertexShader.Model.Set(mgl32.Ident4())
+		gl.BindVertexArray(planeVao)
+		gl.DrawArrays(gl.TRIANGLES, 0, 2*3)
 
 		// Maintenance
 		w.SwapBuffers()
@@ -192,6 +209,15 @@ func main() {
 		window.RecenterCursor()
 		framerate.EndOfFrame(timer.GetTime())
 	}
+}
+
+var planeVertices = []vertexshader.Vertex{
+	{mgl32.Vec3{-1000.0, 0, -1000.0}, mgl32.Vec3{0, 1.0, 0}},
+	{mgl32.Vec3{1000.0, 0, -1000.0}, mgl32.Vec3{0, 1.0, 0}},
+	{mgl32.Vec3{-1000.0, 0, 1000.0}, mgl32.Vec3{0, 1.0, 0}},
+	{mgl32.Vec3{1000.0, 0, -1000.0}, mgl32.Vec3{0, 1.0, 0}},
+	{mgl32.Vec3{1000.0, 0, 1000.0}, mgl32.Vec3{0, 1.0, 0}},
+	{mgl32.Vec3{-1000.0, 0, 1000.0}, mgl32.Vec3{0, 1.0, 0}},
 }
 
 var cubeVertices = []vertexshader.Vertex{

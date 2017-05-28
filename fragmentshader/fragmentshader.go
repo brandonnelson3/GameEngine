@@ -71,7 +71,7 @@ void main() {
 		pointLightColor += attenuation * diffuse;
 	}
 	if (renderMode == 0) {
-		outputColor = vec4(pointLightColor+vec3(0.1), 1.0);
+		outputColor = vec4(pointLightColor+abs(vec3(0.1)*(dot(fragment_in.normal, vec3(0,1,0)))), 1.0);
 	} else if (renderMode == 1) {
 		outputColor = vec4(vec3(float(i)/4)+vec3(0.1), 1.0);
 	}
