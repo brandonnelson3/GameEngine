@@ -39,7 +39,7 @@ uniform sampler2D depthMap;
 uniform mat4 view;
 uniform mat4 projection;
 uniform uvec2 screenSize;
-uniform int lightCount;
+uniform uint lightCount;
 
 // Shared values between all the threads in the group
 shared uint minDepthInt;
@@ -176,7 +176,7 @@ type LightCullingShader struct {
 	DepthMap         *uniforms.Sampler2D
 	Projection, View *uniforms.Matrix4
 	ScreenSize       *uniforms.UIVector2
-	LightCount       *uniforms.Int
+	LightCount       *uniforms.UInt
 }
 
 // NewLightCullingShader instantiates and initializes a LightCullingShader object.
@@ -229,7 +229,7 @@ func NewLightCullingShader() (*LightCullingShader, error) {
 		Projection: uniforms.NewMatrix4(program, projectionLoc),
 		View:       uniforms.NewMatrix4(program, viewLoc),
 		ScreenSize: uniforms.NewUIVector2(program, screenSizeLoc),
-		LightCount: uniforms.NewInt(program, lightCountLoc),
+		LightCount: uniforms.NewUInt(program, lightCountLoc),
 	}, nil
 }
 

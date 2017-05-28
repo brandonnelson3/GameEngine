@@ -177,7 +177,7 @@ func main() {
 		lightCullingShader.Projection.Set(window.GetProjection())
 		lightCullingShader.DepthMap.Set(depthMap)
 		lightCullingShader.ScreenSize.Set(uniforms.UIVec2{window.Width, window.Height})
-		lightCullingShader.LightCount.Set(4)
+		lightCullingShader.LightCount.Set(lights.GetNumPointLights())
 		gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, lightBuffer)
 		gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 1, visibleLightIndicesBuffer)
 		gl.DispatchCompute(window.GetNumTilesX(), window.GetNumTilesY(), 1)

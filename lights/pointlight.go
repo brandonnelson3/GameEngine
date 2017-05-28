@@ -14,30 +14,15 @@ const (
 var (
 	// PointLights are the current pointlights in the scene.
 	PointLights    [MaximumPointLights]PointLight
-	numPointLights uint
+	numPointLights = uint32(0)
 	mu             sync.Mutex
 )
 
 func init() {
-	PointLights[0].Color = mgl32.Vec3{1.0, 0.0, 0.0}
-	PointLights[0].Intensity = 1.0
-	PointLights[0].Position = mgl32.Vec3{0, 3, 0}
-	PointLights[0].Radius = 10.0
-
-	PointLights[1].Color = mgl32.Vec3{0.0, 1.0, 0.0}
-	PointLights[1].Intensity = 1.0
-	PointLights[1].Position = mgl32.Vec3{36, 3, 0}
-	PointLights[1].Radius = 10.0
-
-	PointLights[2].Color = mgl32.Vec3{0.0, 0.0, 1.0}
-	PointLights[2].Intensity = 1.0
-	PointLights[2].Position = mgl32.Vec3{0, 3, 36}
-	PointLights[2].Radius = 10.0
-
-	PointLights[3].Color = mgl32.Vec3{1.0, 1.0, 0.0}
-	PointLights[3].Intensity = 1.0
-	PointLights[3].Position = mgl32.Vec3{36, 3, 36}
-	PointLights[3].Radius = 10.0
+	AddPointLight(mgl32.Vec3{0, 3, 0}, mgl32.Vec3{1, 0, 0}, 1.0, 10.0)
+	AddPointLight(mgl32.Vec3{36, 3, 0}, mgl32.Vec3{0, 1, 0}, 1.0, 10.0)
+	AddPointLight(mgl32.Vec3{0, 3, 36}, mgl32.Vec3{0, 0, 1}, 1.0, 10.0)
+	AddPointLight(mgl32.Vec3{36, 3, 36}, mgl32.Vec3{1, 1, 0}, 1.0, 10.0)
 }
 
 // PointLight represents all of the data about a PointLight.
@@ -54,7 +39,7 @@ type VisibleIndex struct {
 }
 
 // GetNumPointLights returns the number of PointLights that are currently in the scene.
-func GetNumPointLights() uint {
+func GetNumPointLights() uint32 {
 	return numPointLights
 }
 
