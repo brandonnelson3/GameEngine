@@ -67,28 +67,20 @@ func GetNumPointLights() uint32 {
 // AddPointLight adds a PointLight to the scene with the given attributes.
 func AddPointLight(position, color mgl32.Vec3, intensity, radius float32) {
 	mu.Lock()
-	defer mu.Unlock()
 
 	PointLights[numPointLights].Color = color
 	PointLights[numPointLights].Intensity = intensity
 	PointLights[numPointLights].Position = position
 	PointLights[numPointLights].Radius = radius
 
-	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, lightBuffer)
-	//pointLights := gl.MapBuffer(gl.SHADER_STORAGE_BUFFER, gl.READ_WRITE)
-	/*
-		for (int i = 0; i < NUM_LIGHTS; i++) {
-			PointLight &light = pointLights[i];
-			float min = LIGHT_MIN_BOUNDS[1];
-			float max = LIGHT_MAX_BOUNDS[1];
-
-			light.position.y = fmod((light.position.y + (-4.5f * deltaTime) - min + max), max) + min;
-		}
-	*/
-	gl.UnmapBuffer(gl.SHADER_STORAGE_BUFFER)
-	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, 0)
-
 	numPointLights++
+
+	mu.Unlock()
+
+	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, lightBuffer)
+	gl.BufferData(gl.SHADER_STORAGE_BUFFER, MaximumPointLights*int(unsafe.Sizeof(&PointLight{})), unsafe.Pointer(&PointLights), gl.DYNAMIC_DRAW)
+
+	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, 0)
 }
 
 // GetPointLightBuffer retrieves the private lightBuffer variable.

@@ -13,7 +13,8 @@ const (
 )
 
 var (
-	down [keyRange]bool
+	down          [keyRange]bool
+	downThisFrame [keyRange]bool
 )
 
 // MouseInput is message data which is sent for every mouse cursor position callback.
@@ -24,15 +25,20 @@ type MouseInput struct {
 // Update calls all of the currently pressed keys.
 func Update() {
 	pressedKeys := make([]glfw.Key, 0, 10)
+	pressedKeysThisFrame := make([]glfw.Key, 0, 10)
 
 	// glfw.KeySpace is the lowest key.
 	for i := glfw.KeySpace; i < keyRange; i++ {
 		if down[i] {
 			pressedKeys = append(pressedKeys, i)
 		}
+		if downThisFrame[i] {
+			pressedKeysThisFrame = append(pressedKeysThisFrame, i)
+			downThisFrame[i] = false
+		}
 	}
 	if len(pressedKeys) > 0 {
-		messagebus.SendSync(&messagebus.Message{Type: "key", Data: pressedKeys})
+		messagebus.SendSync(&messagebus.Message{Type: "key", Data1: pressedKeys, Data2: pressedKeysThisFrame})
 	}
 }
 
@@ -40,6 +46,7 @@ func Update() {
 func KeyCallBack(w *glfw.Window, key glfw.Key, scancode int, action glfw.Action, mods glfw.ModifierKey) {
 	if action == glfw.Press {
 		down[key] = true
+		downThisFrame[key] = true
 	}
 	if action == glfw.Release {
 		down[key] = false
@@ -53,5 +60,5 @@ func MouseButtonCallback(w *glfw.Window, button glfw.MouseButton, action glfw.Ac
 
 // CursorPosCallback is the function bound to handle mouse movement events from OpenGL.
 func CursorPosCallback(w *glfw.Window, x, y float64) {
-	messagebus.SendSync(&messagebus.Message{Type: "mouse", Data: MouseInput{x, y}})
+	messagebus.SendSync(&messagebus.Message{Type: "mouse", Data1: MouseInput{x, y}})
 }

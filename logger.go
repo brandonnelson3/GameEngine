@@ -7,7 +7,7 @@ import (
 )
 
 func logger(m *messagebus.Message) {
-	fmt.Println(m.System + ": " + m.Data.(string))
+	fmt.Println(m.System + ": " + m.Data1.(string))
 }
 
 func init() {

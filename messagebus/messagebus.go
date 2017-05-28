@@ -13,7 +13,8 @@ var (
 type Message struct {
 	System string
 	Type   string
-	Data   interface{}
+	Data1  interface{}
+	Data2  interface{}
 }
 
 // MessageHandler is any function which can be registered to receieve messages.

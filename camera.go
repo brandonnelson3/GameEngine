@@ -43,6 +43,11 @@ func (c *FirstPersonCamera) Update(d float64) {
 	}
 }
 
+// GetPosition returns the position of this FirstPersonCamera.
+func (c *FirstPersonCamera) GetPosition() mgl32.Vec3 {
+	return c.position
+}
+
 // GetForward returns the forward unit vector for this camera.
 func (c *FirstPersonCamera) GetForward() mgl32.Vec3 {
 	return mgl32.Rotate3DY(c.horizontalAngle).Mul3x1(mgl32.Rotate3DZ(c.verticalAngle).Mul3x1((mgl32.Vec3{1, 0, 0})))
@@ -60,7 +65,7 @@ func (c *FirstPersonCamera) GetView() mgl32.Mat4 {
 
 func (c *FirstPersonCamera) handleMovement(m *messagebus.Message) {
 	direction := mgl32.Vec3{0, 0, 0}
-	pressedKeys := m.Data.([]glfw.Key)
+	pressedKeys := m.Data1.([]glfw.Key)
 	for _, key := range pressedKeys {
 		switch key {
 		case glfw.KeyW:
@@ -72,14 +77,14 @@ func (c *FirstPersonCamera) handleMovement(m *messagebus.Message) {
 		case glfw.KeyA:
 			direction = direction.Sub(c.GetRight())
 		case glfw.KeyP:
-			messagebus.SendAsync(&messagebus.Message{System: "Camera", Type: "log", Data: fmt.Sprintf("position: mgl32.Vec3{%f, %f, %f}, horizontalAngle: %f, verticalAngle: %f", c.position.X(), c.position.Y(), c.position.Z(), c.horizontalAngle, c.verticalAngle)})
+			messagebus.SendAsync(&messagebus.Message{System: "Camera", Type: "log", Data1: fmt.Sprintf("position: mgl32.Vec3{%f, %f, %f}, horizontalAngle: %f, verticalAngle: %f", c.position.X(), c.position.Y(), c.position.Z(), c.horizontalAngle, c.verticalAngle)})
 		}
 	}
 	c.direction = direction
 }
 
 func (c *FirstPersonCamera) handleMouse(m *messagebus.Message) {
-	mouseInput := m.Data.(input.MouseInput)
+	mouseInput := m.Data1.(input.MouseInput)
 	c.verticalAngle -= c.sensitivity * float32(mouseInput.Y-float64(window.Height)/2)
 	if c.verticalAngle < -pi2 {
 		c.verticalAngle = float32(-pi2 + 0.0001)

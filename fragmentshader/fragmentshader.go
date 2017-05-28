@@ -88,7 +88,7 @@ void main() {
 	if (renderMode == 0) {
 		outputColor = vec4(pointLightColor+directionalLightColor, 1.0);
 	} else if (renderMode == 1) {
-		outputColor = vec4(vec3(float(i)/4)+vec3(0.1), 1.0);
+		outputColor = vec4(vec3(float(i)/256)+vec3(0.1), 1.0);
 	} else if (renderMode == 2) {
 		outputColor = vec4(abs(fragment_in.normal), 1.0);
 	}
@@ -159,7 +159,7 @@ func NewFragmentShader() (*FragmentShader, error) {
 	}
 
 	messagebus.RegisterType("key", func(m *messagebus.Message) {
-		pressedKeys := m.Data.([]glfw.Key)
+		pressedKeys := m.Data1.([]glfw.Key)
 		for _, key := range pressedKeys {
 			switch key {
 			case glfw.KeyF1:

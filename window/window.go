@@ -60,7 +60,7 @@ func RecenterCursor() {
 }
 
 func handleEscape(m *messagebus.Message) {
-	pressedKeys := m.Data.([]glfw.Key)
+	pressedKeys := m.Data1.([]glfw.Key)
 
 	for _, key := range pressedKeys {
 		if key == glfw.KeyEscape {

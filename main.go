@@ -16,6 +16,7 @@ import (
 	"github.com/brandonnelson3/GameEngine/input"
 	"github.com/brandonnelson3/GameEngine/lightcullingshader"
 	"github.com/brandonnelson3/GameEngine/lights"
+	"github.com/brandonnelson3/GameEngine/messagebus"
 	"github.com/brandonnelson3/GameEngine/timer"
 	"github.com/brandonnelson3/GameEngine/uniforms"
 	"github.com/brandonnelson3/GameEngine/vertexshader"
@@ -142,6 +143,16 @@ func main() {
 	vertexShader.BindVertexAttributes()
 
 	camera := NewFirstPersonCamera()
+
+	messagebus.RegisterType("key", func(m *messagebus.Message) {
+		pressedKeys := m.Data2.([]glfw.Key)
+		for _, key := range pressedKeys {
+			switch key {
+			case glfw.KeyL:
+				lights.AddPointLight(camera.GetPosition(), mgl32.Vec3{1, 1, 1}, 1, 10)
+			}
+		}
+	})
 
 	for !w.ShouldClose() {
 		timer.BeginningOfFrame()
