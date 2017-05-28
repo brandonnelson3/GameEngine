@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/brandonnelson3/GameEngine/buffers"
 	"github.com/brandonnelson3/GameEngine/messagebus"
 	"github.com/brandonnelson3/GameEngine/uniforms"
 	"github.com/go-gl/gl/v4.5-core/gl"
@@ -83,6 +84,8 @@ type FragmentShader struct {
 
 	RenderMode *uniforms.Int
 	NumTilesX  *uniforms.UInt
+
+	LightBuffer, VisibleLightIndicesBuffer *buffers.Binding
 }
 
 // NewFragmentShader instantiates and initializes a FragmentShader object.
@@ -130,9 +133,11 @@ func NewFragmentShader() (*FragmentShader, error) {
 	gl.BindFragDataLocation(program, 0, gl.Str("outputColor\x00"))
 
 	fs := &FragmentShader{
-		uint32:     program,
-		RenderMode: uniforms.NewInt(program, renderModeLoc),
-		NumTilesX:  uniforms.NewUInt(program, numTilesXLoc),
+		uint32:                    program,
+		RenderMode:                uniforms.NewInt(program, renderModeLoc),
+		NumTilesX:                 uniforms.NewUInt(program, numTilesXLoc),
+		LightBuffer:               buffers.NewBinding(0),
+		VisibleLightIndicesBuffer: buffers.NewBinding(1),
 	}
 
 	messagebus.RegisterType("key", func(m *messagebus.Message) {

@@ -175,6 +175,8 @@ func main() {
 		vertexShader.View.Set(camera.GetView())
 		vertexShader.Projection.Set(window.GetProjection())
 		fragmentShader.NumTilesX.Set(window.GetNumTilesX())
+		fragmentShader.LightBuffer.Set(lights.GetPointLightBuffer())
+		fragmentShader.VisibleLightIndicesBuffer.Set(lights.GetPointLightVisibleLightIndicesBuffer())
 		for x := 0; x < 10; x++ {
 			for y := 0; y < 10; y++ {
 				modelTranslation := mgl32.Translate3D(float32(4*x), 0.0, float32(4*y))
