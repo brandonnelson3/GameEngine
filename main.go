@@ -148,8 +148,7 @@ func main() {
 		for x := 0; x < 10; x++ {
 			for y := 0; y < 10; y++ {
 				modelTranslation := mgl32.Translate3D(float32(4*x), 0.0, float32(4*y))
-				modelScale := mgl32.Scale3D(1, 1, 1)
-				depthVertexShader.Model.Set(modelTranslation.Mul4(modelScale))
+				depthVertexShader.Model.Set(modelTranslation)
 				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
 			}
 		}
@@ -179,8 +178,7 @@ func main() {
 		for x := 0; x < 10; x++ {
 			for y := 0; y < 10; y++ {
 				modelTranslation := mgl32.Translate3D(float32(4*x), 0.0, float32(4*y))
-				modelScale := mgl32.Scale3D(1, 1, 1)
-				vertexShader.Model.Set(modelTranslation.Mul4(modelScale))
+				vertexShader.Model.Set(modelTranslation)
 				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
 			}
 		}
