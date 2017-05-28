@@ -17,8 +17,10 @@ const (
 
 // TODO: Probably can pull this out into a common place.
 struct PointLight {
-	vec4 color;
-	vec4 positionAndRadius;
+	vec3 color;
+	float intensity;
+	vec3 position;
+	float radius;
 };
 
 struct VisibleIndex {
@@ -60,11 +62,11 @@ void main() {
 	for (i; i < 1024 && visibleLightIndicesBuffer.data[offset + i].index != -1; i++) {
 		uint lightIndex = visibleLightIndicesBuffer.data[offset + i].index;
 		PointLight light = lightBuffer.data[lightIndex];
-		vec3 lightVector = light.positionAndRadius.xyz - fragment_in.worldPosition;
+		vec3 lightVector = light.position - fragment_in.worldPosition;
 		float dist = length(lightVector);
 		float NdL = max(0.0f, dot(fragment_in.normal, lightVector*(1.0f/dist)));
-		float attenuation = 1.0f - clamp(dist * (1.0/(light.positionAndRadius.w)), 0.0, 1.0);
-		vec3 diffuse = NdL * light.color.xyz;
+		float attenuation = 1.0f - clamp(dist * (1.0/(light.radius)), 0.0, 1.0);
+		vec3 diffuse = NdL * light.color * light.intensity;
 		pointLightColor += attenuation * diffuse;
 	}
 	if (renderMode == 0) {
