@@ -55,6 +55,7 @@ func InitPointLights() {
 	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, visibleLightIndicesBuffer)
 	gl.BufferData(gl.SHADER_STORAGE_BUFFER, int(window.GetTotalNumTiles())*int(unsafe.Sizeof(&VisibleIndex{}))*MaximumPointLights, nil, gl.STATIC_DRAW)
 
+	// Unbind for safety.
 	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, 0)
 }
 

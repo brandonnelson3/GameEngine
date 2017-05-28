@@ -58,6 +58,7 @@ func main() {
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
 	lights.InitPointLights()
+	lights.InitDirectionalLights()
 
 	// Build Depth Pipeline
 	depthVertexShader, err := depthvertexshader.NewDepthVertexShader()
@@ -190,6 +191,7 @@ func main() {
 		fragmentShader.NumTilesX.Set(window.GetNumTilesX())
 		fragmentShader.LightBuffer.Set(lights.GetPointLightBuffer())
 		fragmentShader.VisibleLightIndicesBuffer.Set(lights.GetPointLightVisibleLightIndicesBuffer())
+		fragmentShader.DirectionalLightBuffer.Set(lights.GetDirectionalLightBuffer())
 		gl.BindVertexArray(cubeVao)
 		for x := 0; x < 10; x++ {
 			for y := 0; y < 10; y++ {

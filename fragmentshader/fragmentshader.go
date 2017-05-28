@@ -28,6 +28,12 @@ struct VisibleIndex {
 	int index;
 };
 
+struct DirectionalLight {
+	vec3 color;
+	float brightness;
+	vec3 direction;
+};
+
 // Shader storage buffer objects
 layout(std430, binding = 0) readonly buffer LightBuffer {
 	PointLight data[];
@@ -36,6 +42,10 @@ layout(std430, binding = 0) readonly buffer LightBuffer {
 layout(std430, binding = 1) readonly buffer VisibleLightIndicesBuffer {
 	VisibleIndex data[];
 } visibleLightIndicesBuffer;
+
+layout(std430, binding = 2) readonly buffer DirectionalLightBuffer {
+	DirectionalLight data;
+} directionalLightBuffer;
 
 uniform int renderMode;
 uniform uint numTilesX;
@@ -70,10 +80,17 @@ void main() {
 		vec3 diffuse = NdL * light.color * light.intensity;
 		pointLightColor += attenuation * diffuse;
 	}
+ 	
+	DirectionalLight directionalLight = directionalLightBuffer.data;
+	float NdL = max(0.0f, dot(fragment_in.normal, -1*directionalLight.direction));
+	vec3 directionalLightColor = NdL * directionalLight.color * directionalLight.brightness;
+
 	if (renderMode == 0) {
-		outputColor = vec4(pointLightColor+abs(vec3(0.1)*(dot(fragment_in.normal, vec3(0,1,0)))), 1.0);
+		outputColor = vec4(pointLightColor+directionalLightColor, 1.0);
 	} else if (renderMode == 1) {
 		outputColor = vec4(vec3(float(i)/4)+vec3(0.1), 1.0);
+	} else if (renderMode == 2) {
+		outputColor = vec4(abs(fragment_in.normal), 1.0);
 	}
 }` + "\x00"
 )
@@ -85,7 +102,7 @@ type FragmentShader struct {
 	RenderMode *uniforms.Int
 	NumTilesX  *uniforms.UInt
 
-	LightBuffer, VisibleLightIndicesBuffer *buffers.Binding
+	LightBuffer, VisibleLightIndicesBuffer, DirectionalLightBuffer *buffers.Binding
 }
 
 // NewFragmentShader instantiates and initializes a FragmentShader object.
@@ -138,6 +155,7 @@ func NewFragmentShader() (*FragmentShader, error) {
 		NumTilesX:                 uniforms.NewUInt(program, numTilesXLoc),
 		LightBuffer:               buffers.NewBinding(0),
 		VisibleLightIndicesBuffer: buffers.NewBinding(1),
+		DirectionalLightBuffer:    buffers.NewBinding(2),
 	}
 
 	messagebus.RegisterType("key", func(m *messagebus.Message) {
@@ -148,6 +166,8 @@ func NewFragmentShader() (*FragmentShader, error) {
 				fs.RenderMode.Set(0)
 			case glfw.KeyF2:
 				fs.RenderMode.Set(1)
+			case glfw.KeyF3:
+				fs.RenderMode.Set(2)
 			}
 		}
 	})
