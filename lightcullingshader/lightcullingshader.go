@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/brandonnelson3/GameEngine/buffers"
 	"github.com/brandonnelson3/GameEngine/uniforms"
 	"github.com/go-gl/gl/v4.5-core/gl"
 )
@@ -177,6 +178,8 @@ type LightCullingShader struct {
 	Projection, View *uniforms.Matrix4
 	ScreenSize       *uniforms.UIVector2
 	LightCount       *uniforms.UInt
+
+	LightBuffer, VisibleLightIndicesBuffer *buffers.Binding
 }
 
 // NewLightCullingShader instantiates and initializes a LightCullingShader object.
@@ -224,12 +227,14 @@ func NewLightCullingShader() (*LightCullingShader, error) {
 	gl.DeleteShader(shader)
 
 	return &LightCullingShader{
-		uint32:     program,
-		DepthMap:   uniforms.NewSampler2D(program, depthMapLoc),
-		Projection: uniforms.NewMatrix4(program, projectionLoc),
-		View:       uniforms.NewMatrix4(program, viewLoc),
-		ScreenSize: uniforms.NewUIVector2(program, screenSizeLoc),
-		LightCount: uniforms.NewUInt(program, lightCountLoc),
+		uint32:                    program,
+		DepthMap:                  uniforms.NewSampler2D(program, depthMapLoc),
+		Projection:                uniforms.NewMatrix4(program, projectionLoc),
+		View:                      uniforms.NewMatrix4(program, viewLoc),
+		ScreenSize:                uniforms.NewUIVector2(program, screenSizeLoc),
+		LightCount:                uniforms.NewUInt(program, lightCountLoc),
+		LightBuffer:               buffers.NewBinding(0),
+		VisibleLightIndicesBuffer: buffers.NewBinding(1),
 	}, nil
 }
 

@@ -2,7 +2,10 @@ package lights
 
 import (
 	"sync"
+	"unsafe"
 
+	"github.com/brandonnelson3/GameEngine/window"
+	"github.com/go-gl/gl/v4.5-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 )
 
@@ -16,14 +19,9 @@ var (
 	PointLights    [MaximumPointLights]PointLight
 	numPointLights = uint32(0)
 	mu             sync.Mutex
-)
 
-func init() {
-	AddPointLight(mgl32.Vec3{0, 3, 0}, mgl32.Vec3{1, 0, 0}, 1.0, 10.0)
-	AddPointLight(mgl32.Vec3{36, 3, 0}, mgl32.Vec3{0, 1, 0}, 1.0, 10.0)
-	AddPointLight(mgl32.Vec3{0, 3, 36}, mgl32.Vec3{0, 0, 1}, 1.0, 10.0)
-	AddPointLight(mgl32.Vec3{36, 3, 36}, mgl32.Vec3{1, 1, 0}, 1.0, 10.0)
-}
+	lightBuffer, visibleLightIndicesBuffer uint32
+)
 
 // PointLight represents all of the data about a PointLight.
 type PointLight struct {
@@ -36,6 +34,28 @@ type PointLight struct {
 // VisibleIndex is a wrapper around an index.
 type VisibleIndex struct {
 	index int32
+}
+
+// InitPointLights sets up buffer space for light culling calculations and storage.
+func InitPointLights() {
+	AddPointLight(mgl32.Vec3{0, 3, 0}, mgl32.Vec3{1, 0, 0}, 1.0, 10.0)
+	AddPointLight(mgl32.Vec3{36, 3, 0}, mgl32.Vec3{0, 1, 0}, 1.0, 10.0)
+	AddPointLight(mgl32.Vec3{0, 3, 36}, mgl32.Vec3{0, 0, 1}, 1.0, 10.0)
+	AddPointLight(mgl32.Vec3{36, 3, 36}, mgl32.Vec3{1, 1, 0}, 1.0, 10.0)
+
+	// Prepare light buffers
+	gl.GenBuffers(1, &lightBuffer)
+	gl.GenBuffers(1, &visibleLightIndicesBuffer)
+
+	// Bind light buffer
+	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, lightBuffer)
+	gl.BufferData(gl.SHADER_STORAGE_BUFFER, MaximumPointLights*int(unsafe.Sizeof(&PointLight{})), unsafe.Pointer(&PointLights), gl.DYNAMIC_DRAW)
+
+	// Bind visible light indices buffer
+	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, visibleLightIndicesBuffer)
+	gl.BufferData(gl.SHADER_STORAGE_BUFFER, int(window.GetTotalNumTiles())*int(unsafe.Sizeof(&VisibleIndex{}))*MaximumPointLights, nil, gl.STATIC_DRAW)
+
+	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, 0)
 }
 
 // GetNumPointLights returns the number of PointLights that are currently in the scene.
@@ -53,5 +73,29 @@ func AddPointLight(position, color mgl32.Vec3, intensity, radius float32) {
 	PointLights[numPointLights].Position = position
 	PointLights[numPointLights].Radius = radius
 
+	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, lightBuffer)
+	//pointLights := gl.MapBuffer(gl.SHADER_STORAGE_BUFFER, gl.READ_WRITE)
+	/*
+		for (int i = 0; i < NUM_LIGHTS; i++) {
+			PointLight &light = pointLights[i];
+			float min = LIGHT_MIN_BOUNDS[1];
+			float max = LIGHT_MAX_BOUNDS[1];
+
+			light.position.y = fmod((light.position.y + (-4.5f * deltaTime) - min + max), max) + min;
+		}
+	*/
+	gl.UnmapBuffer(gl.SHADER_STORAGE_BUFFER)
+	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, 0)
+
 	numPointLights++
+}
+
+// GetPointLightBuffer retrieves the private lightBuffer variable.
+func GetPointLightBuffer() uint32 {
+	return lightBuffer
+}
+
+// GetPointLightVisibleLightIndicesBuffer retrieves the private visibleLightIndicesBuffer variable.
+func GetPointLightVisibleLightIndicesBuffer() uint32 {
+	return visibleLightIndicesBuffer
 }

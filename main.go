@@ -9,8 +9,6 @@ import (
 	"github.com/go-gl/glfw/v3.1/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 
-	"unsafe"
-
 	"github.com/brandonnelson3/GameEngine/depthfragmentshader"
 	"github.com/brandonnelson3/GameEngine/depthvertexshader"
 	"github.com/brandonnelson3/GameEngine/fragmentshader"
@@ -59,22 +57,7 @@ func main() {
 	gl.DepthMask(true)
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
-	var lightBuffer uint32
-	var visibleLightIndicesBuffer uint32
-
-	// Prepare light buffers
-	gl.GenBuffers(1, &lightBuffer)
-	gl.GenBuffers(1, &visibleLightIndicesBuffer)
-
-	// Bind light buffer
-	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, lightBuffer)
-	gl.BufferData(gl.SHADER_STORAGE_BUFFER, lights.MaximumPointLights*int(unsafe.Sizeof(&lights.PointLight{})), unsafe.Pointer(&lights.PointLights), gl.DYNAMIC_DRAW)
-
-	// Bind visible light indices buffer
-	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, visibleLightIndicesBuffer)
-	gl.BufferData(gl.SHADER_STORAGE_BUFFER, int(window.GetTotalNumTiles())*int(unsafe.Sizeof(&lights.VisibleIndex{}))*lights.MaximumPointLights, nil, gl.STATIC_DRAW)
-
-	gl.BindBuffer(gl.SHADER_STORAGE_BUFFER, 0)
+	lights.InitPointLights()
 
 	// Build Depth Pipeline
 	depthVertexShader, err := depthvertexshader.NewDepthVertexShader()
@@ -178,8 +161,8 @@ func main() {
 		lightCullingShader.DepthMap.Set(depthMap)
 		lightCullingShader.ScreenSize.Set(uniforms.UIVec2{window.Width, window.Height})
 		lightCullingShader.LightCount.Set(lights.GetNumPointLights())
-		gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 0, lightBuffer)
-		gl.BindBufferBase(gl.SHADER_STORAGE_BUFFER, 1, visibleLightIndicesBuffer)
+		lightCullingShader.LightBuffer.Set(lights.GetPointLightBuffer())
+		lightCullingShader.VisibleLightIndicesBuffer.Set(lights.GetPointLightVisibleLightIndicesBuffer())
 		gl.DispatchCompute(window.GetNumTilesX(), window.GetNumTilesY(), 1)
 		// TODO: Fix this...
 		gl.ActiveTexture(gl.TEXTURE4)
