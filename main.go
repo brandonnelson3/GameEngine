@@ -71,6 +71,11 @@ func main() {
 		panic(err)
 	}
 
+	sandTexture, err := textures.NewFromPng("sand.png")
+	if err != nil {
+		panic(err)
+	}
+
 	// Build Depth Pipeline
 	depthVertexShader, err := depthvertexshader.NewDepthVertexShader()
 	if err != nil {
@@ -186,9 +191,9 @@ func main() {
 				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
 			}
 		}
-		//depthVertexShader.Model.Set(mgl32.Ident4())
-		//gl.BindVertexArray(planeVao)
-		//gl.DrawArrays(gl.TRIANGLES, 0, 2*3)
+		depthVertexShader.Model.Set(mgl32.Ident4())
+		gl.BindVertexArray(planeVao)
+		gl.DrawArrays(gl.TRIANGLES, 0, 2*3)
 
 		// Step 2: Light Culling
 		lightCullingShader.Use()
@@ -226,6 +231,7 @@ func main() {
 		gl.BindTexture(gl.TEXTURE_2D, 0)
 
 		vertexShader.Model.Set(mgl32.Ident4())
+		fragmentShader.Diffuse.Set(gl.TEXTURE0, 0, sandTexture)
 		gl.BindVertexArray(planeVao)
 		gl.DrawArrays(gl.TRIANGLES, 0, 2*3)
 
@@ -247,11 +253,11 @@ func main() {
 
 var planeVertices = []vertexshader.Vertex{
 	{mgl32.Vec3{-1000.0, 0, -1000.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{0, 0}},
-	{mgl32.Vec3{1000.0, 0, -1000.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{0, 1}},
-	{mgl32.Vec3{-1000.0, 0, 1000.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{1, 0}},
-	{mgl32.Vec3{1000.0, 0, -1000.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{1, 0}},
-	{mgl32.Vec3{1000.0, 0, 1000.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{0, 1}},
-	{mgl32.Vec3{-1000.0, 0, 1000.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{1, 1}},
+	{mgl32.Vec3{1000.0, 0, -1000.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{0, 50}},
+	{mgl32.Vec3{-1000.0, 0, 1000.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{50, 0}},
+	{mgl32.Vec3{1000.0, 0, -1000.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{0, 50}},
+	{mgl32.Vec3{1000.0, 0, 1000.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{50, 50}},
+	{mgl32.Vec3{-1000.0, 0, 1000.0}, mgl32.Vec3{0, 1.0, 0}, mgl32.Vec2{50, 0}},
 }
 
 var cubeVertices = []vertexshader.Vertex{
