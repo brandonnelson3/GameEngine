@@ -17,6 +17,7 @@ import (
 	"github.com/brandonnelson3/GameEngine/lightcullingshader"
 	"github.com/brandonnelson3/GameEngine/lights"
 	"github.com/brandonnelson3/GameEngine/messagebus"
+	"github.com/brandonnelson3/GameEngine/pip"
 	"github.com/brandonnelson3/GameEngine/textures"
 	"github.com/brandonnelson3/GameEngine/timer"
 	"github.com/brandonnelson3/GameEngine/uniforms"
@@ -59,6 +60,8 @@ func main() {
 	gl.Enable(gl.MULTISAMPLE)
 	gl.DepthMask(true)
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
+
+	pip.Initialize()
 
 	lights.InitPointLights()
 	lights.InitDirectionalLights()
@@ -189,15 +192,13 @@ func main() {
 		lightCullingShader.Use()
 		lightCullingShader.View.Set(camera.GetView())
 		lightCullingShader.Projection.Set(window.GetProjection())
-		lightCullingShader.DepthMap.Set(4, depthMap)
+		lightCullingShader.DepthMap.Set(gl.TEXTURE4, 4, depthMap)
 		lightCullingShader.ScreenSize.Set(uniforms.UIVec2{window.Width, window.Height})
 		lightCullingShader.LightCount.Set(lights.GetNumPointLights())
 		lightCullingShader.LightBuffer.Set(lights.GetPointLightBuffer())
 		lightCullingShader.VisibleLightIndicesBuffer.Set(lights.GetPointLightVisibleLightIndicesBuffer())
 		gl.DispatchCompute(window.GetNumTilesX(), window.GetNumTilesY(), 1)
-		// TODO: Fix this...
-		gl.ActiveTexture(gl.TEXTURE4)
-		gl.BindTexture(gl.TEXTURE_2D, 0)
+
 		gl.UseProgram(0)
 
 		// Step 3: Normal pass
@@ -210,7 +211,7 @@ func main() {
 		fragmentShader.LightBuffer.Set(lights.GetPointLightBuffer())
 		fragmentShader.VisibleLightIndicesBuffer.Set(lights.GetPointLightVisibleLightIndicesBuffer())
 		fragmentShader.DirectionalLightBuffer.Set(lights.GetDirectionalLightBuffer())
-		fragmentShader.Diffuse.Set(0, diffuseTexture)
+		fragmentShader.Diffuse.Set(gl.TEXTURE0, 0, diffuseTexture)
 		gl.BindVertexArray(cubeVao)
 		for x := 0; x < 10; x++ {
 			for y := 0; y < 10; y++ {
@@ -219,6 +220,12 @@ func main() {
 				gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
 			}
 		}
+		gl.ActiveTexture(gl.TEXTURE0)
+		gl.BindTexture(gl.TEXTURE_2D, 0)
+
+		gl.Disable(gl.DEPTH_TEST)
+		pip.Render(window.GetProjection(), depthMap)
+		gl.Enable(gl.DEPTH_TEST)
 		//vertexShader.Model.Set(mgl32.Ident4())
 		//gl.BindVertexArray(planeVao)
 		//gl.DrawArrays(gl.TRIANGLES, 0, 2*3)

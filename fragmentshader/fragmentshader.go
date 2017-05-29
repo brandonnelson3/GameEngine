@@ -69,27 +69,30 @@ void main() {
 
 	// TODO 1024 should be somewhere constant.
 	uint offset = index * 1024;
-	vec3 pointLightColor = vec3(0, 0, 0);
-
-	uint i=0;
-	for (i; i < 1024 && visibleLightIndicesBuffer.data[offset + i].index != -1; i++) {
-		uint lightIndex = visibleLightIndicesBuffer.data[offset + i].index;
-		PointLight light = lightBuffer.data[lightIndex];
-		vec3 lightVector = light.position - fragment_in.worldPosition;
-		float dist = length(lightVector);
-		float NdL = max(0.0f, dot(fragment_in.normal, lightVector*(1.0f/dist)));
-		float attenuation = 1.0f - clamp(dist * (1.0/(light.radius)), 0.0, 1.0);
-		vec3 diffuse = NdL * light.color * light.intensity;
-		pointLightColor += attenuation * diffuse;
-	}
- 	
-	DirectionalLight directionalLight = directionalLightBuffer.data;
-	float NdL = max(0.0f, dot(fragment_in.normal, -1*directionalLight.direction));
-	vec3 directionalLightColor = NdL * directionalLight.color * directionalLight.brightness;
-
+	
 	if (renderMode == 0) {
+		vec3 pointLightColor = vec3(0, 0, 0);
+
+		uint i=0;
+		for (i; i < 1024 && visibleLightIndicesBuffer.data[offset + i].index != -1; i++) {
+			uint lightIndex = visibleLightIndicesBuffer.data[offset + i].index;
+			PointLight light = lightBuffer.data[lightIndex];
+			vec3 lightVector = light.position - fragment_in.worldPosition;
+			float dist = length(lightVector);
+			float NdL = max(0.0f, dot(fragment_in.normal, lightVector*(1.0f/dist)));
+			float attenuation = 1.0f - clamp(dist * (1.0/(light.radius)), 0.0, 1.0);
+			vec3 diffuse = NdL * light.color * light.intensity;
+			pointLightColor += attenuation * diffuse;
+		}
+
+		DirectionalLight directionalLight = directionalLightBuffer.data;
+		float NdL = max(0.0f, dot(fragment_in.normal, -1*directionalLight.direction));
+		vec3 directionalLightColor = NdL * directionalLight.color * directionalLight.brightness;
+
 		outputColor = texture(diffuse, fragment_in.uv) * vec4(pointLightColor+directionalLightColor, 1.0);
 	} else if (renderMode == 1) {
+		uint i=0;
+		for (i; i < 1024 && visibleLightIndicesBuffer.data[offset + i].index != -1; i++) {}
 		outputColor = vec4(vec3(float(i)/256)+vec3(0.1), 1.0);
 	} else if (renderMode == 2) {
 		outputColor = vec4(abs(fragment_in.normal), 1.0);

@@ -16,8 +16,8 @@ func NewSampler2D(p uint32, u int32) *Sampler2D {
 }
 
 // Set sets this Sampler2D to the provided id, and updates the uniform data.
-func (m *Sampler2D) Set(slot int32, samplerID uint32) {
-	gl.ActiveTexture(uint32(gl.TEXTURE0 + slot))
+func (m *Sampler2D) Set(texture int, slot int32, samplerID uint32) {
+	gl.ActiveTexture(uint32(texture))
 	gl.Uniform1i(m.uniform, slot)
 	gl.BindTexture(gl.TEXTURE_2D, samplerID)
 }
