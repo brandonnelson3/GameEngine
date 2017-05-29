@@ -28,7 +28,7 @@ out vec4 outputColor;
 void main() {
 	float depth = texture(textureSampler, fragment_in.uv).r;
 	// Linearize the depth value from depth buffer (must do this because we created it using projection)
-	depth = (0.5 * projection[3][2]) / (depth + 0.5 * projection[2][2] - 0.5);
+	depth = 1 - 1/log((0.5 * projection[3][2]) / (depth + 0.5 * projection[2][2] - 0.5));
 
 	outputColor = vec4(vec3(depth), 1.0);
 }` + "\x00"

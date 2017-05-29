@@ -76,6 +76,11 @@ func (c *FirstPersonCamera) handleMovement(m *messagebus.Message) {
 			direction = direction.Add(c.GetRight())
 		case glfw.KeyA:
 			direction = direction.Sub(c.GetRight())
+		}
+	}
+	pressedKeysThisFrame := m.Data2.([]glfw.Key)
+	for _, key := range pressedKeysThisFrame {
+		switch key {
 		case glfw.KeyP:
 			messagebus.SendAsync(&messagebus.Message{System: "Camera", Type: "log", Data1: fmt.Sprintf("position: mgl32.Vec3{%f, %f, %f}, horizontalAngle: %f, verticalAngle: %f", c.position.X(), c.position.Y(), c.position.Z(), c.horizontalAngle, c.verticalAngle)})
 		}
