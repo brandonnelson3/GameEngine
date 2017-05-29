@@ -1,8 +1,10 @@
 package pip
 
 import (
+	"github.com/brandonnelson3/GameEngine/messagebus"
 	"github.com/brandonnelson3/GameEngine/window"
 	"github.com/go-gl/gl/v4.5-core/gl"
+	"github.com/go-gl/glfw/v3.1/glfw"
 	"github.com/go-gl/mathgl/mgl32"
 )
 
@@ -11,6 +13,9 @@ var (
 
 	vertexShader   *VertexShader
 	fragmentShader *FragmentShader
+
+	Enabled  = true
+	DepthMap *uint32
 )
 
 func Initialize() {
@@ -59,14 +64,26 @@ func Initialize() {
 	gl.BufferData(gl.ARRAY_BUFFER, len(planeVertices)*4*4, gl.Ptr(planeVertices), gl.STATIC_DRAW)
 
 	vertexShader.BindVertexAttributes()
+
+	messagebus.RegisterType("key", func(m *messagebus.Message) {
+		pressedKeys := m.Data1.([]glfw.Key)
+		for _, key := range pressedKeys {
+			switch key {
+			case glfw.KeyPageUp:
+				Enabled = true
+			case glfw.KeyPageDown:
+				Enabled = false
+			}
+		}
+	})
 }
 
-func Render(p mgl32.Mat4, depthMap uint32) {
+func Render(p mgl32.Mat4) {
 	gl.BindProgramPipeline(pipeline)
 	vertexShader.Projection.Set(mgl32.Ortho(0.0, float32(window.Width), float32(window.Height), 0.0, -1.0, 1.0))
 	// This is intentionally different since it needs to be the projection matrix that the depthMap was rendered with.
 	fragmentShader.Projection.Set(p)
-	fragmentShader.DepthMap.Set(gl.TEXTURE4, 4, depthMap)
+	fragmentShader.DepthMap.Set(gl.TEXTURE4, 4, *DepthMap)
 	gl.BindVertexArray(planeVao)
 	gl.DrawArrays(gl.TRIANGLES, 0, 2*3)
 	gl.ActiveTexture(gl.TEXTURE4)

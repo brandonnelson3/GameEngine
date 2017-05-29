@@ -129,6 +129,8 @@ func main() {
 	gl.ReadBuffer(gl.NONE)
 	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 
+	pip.DepthMap = &depthMap
+
 	// Configure the vertex data
 	var cubeVao uint32
 	gl.GenVertexArrays(1, &cubeVao)
@@ -223,12 +225,16 @@ func main() {
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, 0)
 
-		gl.Disable(gl.DEPTH_TEST)
-		pip.Render(window.GetProjection(), depthMap)
-		gl.Enable(gl.DEPTH_TEST)
-		//vertexShader.Model.Set(mgl32.Ident4())
-		//gl.BindVertexArray(planeVao)
-		//gl.DrawArrays(gl.TRIANGLES, 0, 2*3)
+		vertexShader.Model.Set(mgl32.Ident4())
+		gl.BindVertexArray(planeVao)
+		gl.DrawArrays(gl.TRIANGLES, 0, 2*3)
+
+		// PIP
+		if pip.Enabled {
+			gl.Disable(gl.DEPTH_TEST)
+			pip.Render(window.GetProjection())
+			gl.Enable(gl.DEPTH_TEST)
+		}
 
 		// Maintenance
 		w.SwapBuffers()
