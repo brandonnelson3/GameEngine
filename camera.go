@@ -94,6 +94,9 @@ func (c *FirstPersonCamera) handleMouse(m *messagebus.Message) {
 	if c.verticalAngle < -pi2 {
 		c.verticalAngle = float32(-pi2 + 0.0001)
 	}
+	if c.verticalAngle > pi2 {
+		c.verticalAngle = float32(pi2 - 0.0001)
+	}
 	c.horizontalAngle -= c.sensitivity * float32(mouseInput.X-float64(window.Width)/2)
 	for c.horizontalAngle < 0 {
 		c.horizontalAngle += float32(2 * math.Pi)
