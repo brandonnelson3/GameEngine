@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math"
 	"runtime"
 
 	"github.com/go-gl/gl/v4.5-core/gl"
@@ -23,6 +24,11 @@ import (
 	"github.com/brandonnelson3/GameEngine/uniforms"
 	"github.com/brandonnelson3/GameEngine/vertexshader"
 	"github.com/brandonnelson3/GameEngine/window"
+)
+
+const (
+	DegToRad = 0.017453292519943295769236907684886127134428718885417 // N[Pi/180, 50]
+	RadToDeg = 57.295779513082320876798154814105170332405472466564   // N[180/Pi, 50]
 )
 
 func init() {
@@ -115,6 +121,30 @@ func main() {
 	gl.UseProgram(0)
 	gl.BindProgramPipeline(normalPipeline)
 
+	// Build CSM Depth FrameBuffers
+	var csmDepthMapFBO uint32
+	gl.GenFramebuffers(1, &csmDepthMapFBO)
+	var csmDepthMap [3]uint32
+	gl.GenTextures(3, &csmDepthMap[0])
+	csmEnds := []float32{window.Near, 25, 100, window.Far}
+
+	for _, m := range csmDepthMap {
+		gl.BindTexture(gl.TEXTURE_2D, m)
+		gl.TexImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, int32(window.Width), int32(window.Height), 0, gl.DEPTH_COMPONENT, gl.FLOAT, nil)
+		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_BORDER)
+		gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_BORDER)
+	}
+
+	gl.BindFramebuffer(gl.FRAMEBUFFER, csmDepthMapFBO)
+	gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, csmDepthMap[0], 0)
+	gl.DrawBuffer(gl.NONE)
+	gl.ReadBuffer(gl.NONE)
+	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
+
+	pip.DepthMap = &csmDepthMap[0]
+
 	// Build Depth FrameBuffer
 	var depthMapFBO uint32
 	gl.GenFramebuffers(1, &depthMapFBO)
@@ -133,8 +163,6 @@ func main() {
 	gl.DrawBuffer(gl.NONE)
 	gl.ReadBuffer(gl.NONE)
 	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
-
-	pip.DepthMap = &depthMap
 
 	// Configure the vertex data
 	var cubeVao uint32
@@ -177,9 +205,69 @@ func main() {
 		input.Update()
 		camera.Update(timer.GetPreviousFrameLength())
 
-		// Step 1: Depth Pass
-		gl.BindFramebuffer(gl.FRAMEBUFFER, depthMapFBO)
+		// Step 1: Render all shadow maps.
 		gl.BindProgramPipeline(depthPipeline)
+
+		gl.Clear(gl.DEPTH_BUFFER_BIT)
+		for i, m := range csmDepthMap {
+			gl.BindFramebuffer(gl.FRAMEBUFFER, csmDepthMapFBO)
+			gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, m, 0)
+			gl.Clear(gl.DEPTH_BUFFER_BIT)
+
+			cam := camera.GetView().Inv()
+			lightM := mgl32.LookAtV(mgl32.Vec3{0, 0, 0}, lights.GetDirectionalLightDirection(), mgl32.Vec3{0, 1, 0})
+
+			ar := float32(window.Height) / float32(window.Width)
+			tanHalfHFOV := float32(math.Tan(DegToRad * float64((window.Fov / 2.0))))
+			tanHalfVFOV := float32(math.Tan(DegToRad * float64(((window.Fov * ar) / 2.0))))
+
+			xn := csmEnds[i] * tanHalfHFOV
+			xf := csmEnds[i+1] * tanHalfHFOV
+			yn := csmEnds[i] * tanHalfVFOV
+			yf := csmEnds[i+1] * tanHalfVFOV
+
+			frustumCorners := []mgl32.Vec4{
+				{xn, yn, csmEnds[i], 1.0},
+				{-xn, yn, csmEnds[i], 1.0},
+				{xn, -yn, csmEnds[i], 1.0},
+				{-xn, -yn, csmEnds[i], 1.0},
+
+				{xf, yf, csmEnds[i+1], 1.0},
+				{-xf, yf, csmEnds[i+1], 1.0},
+				{xf, -yf, csmEnds[i+1], 1.0},
+				{-xf, -yf, csmEnds[i+1], 1.0},
+			}
+
+			left, right := float64(math.MaxFloat32), float64(-math.MaxFloat32)
+			bottom, top := float64(math.MaxFloat32), float64(-math.MaxFloat32)
+			near, far := float64(math.MaxFloat32), float64(-math.MaxFloat32)
+
+			for _, c := range frustumCorners {
+				vW := cam.Mul4x1(c)
+				frustumCornerLightSpace := lightM.Mul4x1(vW)
+
+				left = math.Min(left, float64(frustumCornerLightSpace.X()))
+				right = math.Max(right, float64(frustumCornerLightSpace.X()))
+				bottom = math.Min(bottom, float64(frustumCornerLightSpace.Y()))
+				top = math.Max(top, float64(frustumCornerLightSpace.Y()))
+				near = math.Min(near, float64(frustumCornerLightSpace.Z()))
+				far = math.Max(far, float64(frustumCornerLightSpace.Z()))
+			}
+			depthVertexShader.Projection.Set(
+				mgl32.Ortho(float32(left), float32(right), float32(bottom), float32(top), float32(near), float32(far)))
+			depthVertexShader.View.Set(mgl32.Ident4())
+			gl.BindVertexArray(cubeVao)
+			for x := 0; x < 10; x++ {
+				for y := 0; y < 10; y++ {
+					modelTranslation := mgl32.Translate3D(float32(4*x), 5.0, float32(4*y))
+					depthVertexShader.Model.Set(modelTranslation)
+					gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
+				}
+			}
+		}
+
+		// Step 2: Depth Pass for pointlight culling
+		gl.BindFramebuffer(gl.FRAMEBUFFER, depthMapFBO)
 		gl.Clear(gl.DEPTH_BUFFER_BIT)
 		depthVertexShader.View.Set(camera.GetView())
 		depthVertexShader.Projection.Set(window.GetProjection())
@@ -195,7 +283,7 @@ func main() {
 		gl.BindVertexArray(planeVao)
 		gl.DrawArrays(gl.TRIANGLES, 0, 2*3)
 
-		// Step 2: Light Culling
+		// Step 3: Light Culling
 		lightCullingShader.Use()
 		lightCullingShader.View.Set(camera.GetView())
 		lightCullingShader.Projection.Set(window.GetProjection())
@@ -208,7 +296,7 @@ func main() {
 
 		gl.UseProgram(0)
 
-		// Step 3: Normal pass
+		// Step 4: Normal pass utilizing csm.
 		gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 		gl.BindProgramPipeline(normalPipeline)
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)

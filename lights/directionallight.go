@@ -43,3 +43,8 @@ func InitDirectionalLights() {
 func GetDirectionalLightBuffer() uint32 {
 	return directionalLightBuffer
 }
+
+// GetDirectionalLightDirection returns the private directional light's direction.
+func GetDirectionalLightDirection() mgl32.Vec3 {
+	return directionalLight.Direction
+}
