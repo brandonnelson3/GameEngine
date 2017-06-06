@@ -18,7 +18,9 @@ var (
 	DepthMap *uint32
 )
 
-func Initialize() {
+func Initialize(m *uint32) {
+	DepthMap = m
+
 	var err error
 	vertexShader, err = NewVertexShader()
 	if err != nil {

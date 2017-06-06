@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"math"
 	"runtime"
 
 	"github.com/go-gl/gl/v4.5-core/gl"
@@ -67,8 +66,6 @@ func main() {
 	gl.DepthMask(true)
 	gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 
-	pip.Initialize()
-
 	lights.InitPointLights()
 	lights.InitDirectionalLights()
 
@@ -126,7 +123,6 @@ func main() {
 	gl.GenFramebuffers(1, &csmDepthMapFBO)
 	var csmDepthMap [3]uint32
 	gl.GenTextures(3, &csmDepthMap[0])
-	csmEnds := []float32{window.Near, 25, 100, window.Far}
 
 	for _, m := range csmDepthMap {
 		gl.BindTexture(gl.TEXTURE_2D, m)
@@ -142,8 +138,6 @@ func main() {
 	gl.DrawBuffer(gl.NONE)
 	gl.ReadBuffer(gl.NONE)
 	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
-
-	pip.DepthMap = &csmDepthMap[0]
 
 	// Build Depth FrameBuffer
 	var depthMapFBO uint32
@@ -163,6 +157,8 @@ func main() {
 	gl.DrawBuffer(gl.NONE)
 	gl.ReadBuffer(gl.NONE)
 	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
+
+	pip.Initialize(&depthMap)
 
 	// Configure the vertex data
 	var cubeVao uint32
@@ -195,6 +191,14 @@ func main() {
 			switch key {
 			case glfw.KeyL:
 				lights.AddPointLight(camera.GetPosition(), mgl32.Vec3{1, 1, 1}, 1, 10)
+			case glfw.KeyKP1:
+				pip.DepthMap = &csmDepthMap[0]
+			case glfw.KeyKP2:
+				pip.DepthMap = &csmDepthMap[1]
+			case glfw.KeyKP3:
+				pip.DepthMap = &csmDepthMap[2]
+			case glfw.KeyKP9:
+				pip.DepthMap = &depthMap
 			}
 		}
 	})
@@ -207,64 +211,22 @@ func main() {
 
 		// Step 1: Render all shadow maps.
 		gl.BindProgramPipeline(depthPipeline)
+		/*		for i, m := range csmDepthMap {
+				gl.BindFramebuffer(gl.FRAMEBUFFER, csmDepthMapFBO)
+				gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, m, 0)
+				gl.Clear(gl.DEPTH_BUFFER_BIT)
 
-		gl.Clear(gl.DEPTH_BUFFER_BIT)
-		for i, m := range csmDepthMap {
-			gl.BindFramebuffer(gl.FRAMEBUFFER, csmDepthMapFBO)
-			gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, m, 0)
-			gl.Clear(gl.DEPTH_BUFFER_BIT)
-
-			cam := camera.GetView().Inv()
-			lightM := mgl32.LookAtV(mgl32.Vec3{0, 0, 0}, lights.GetDirectionalLightDirection(), mgl32.Vec3{0, 1, 0})
-
-			ar := float32(window.Height) / float32(window.Width)
-			tanHalfHFOV := float32(math.Tan(DegToRad * float64((window.Fov / 2.0))))
-			tanHalfVFOV := float32(math.Tan(DegToRad * float64(((window.Fov * ar) / 2.0))))
-
-			xn := csmEnds[i] * tanHalfHFOV
-			xf := csmEnds[i+1] * tanHalfHFOV
-			yn := csmEnds[i] * tanHalfVFOV
-			yf := csmEnds[i+1] * tanHalfVFOV
-
-			frustumCorners := []mgl32.Vec4{
-				{xn, yn, csmEnds[i], 1.0},
-				{-xn, yn, csmEnds[i], 1.0},
-				{xn, -yn, csmEnds[i], 1.0},
-				{-xn, -yn, csmEnds[i], 1.0},
-
-				{xf, yf, csmEnds[i+1], 1.0},
-				{-xf, yf, csmEnds[i+1], 1.0},
-				{xf, -yf, csmEnds[i+1], 1.0},
-				{-xf, -yf, csmEnds[i+1], 1.0},
-			}
-
-			left, right := float64(math.MaxFloat32), float64(-math.MaxFloat32)
-			bottom, top := float64(math.MaxFloat32), float64(-math.MaxFloat32)
-			near, far := float64(math.MaxFloat32), float64(-math.MaxFloat32)
-
-			for _, c := range frustumCorners {
-				vW := cam.Mul4x1(c)
-				frustumCornerLightSpace := lightM.Mul4x1(vW)
-
-				left = math.Min(left, float64(frustumCornerLightSpace.X()))
-				right = math.Max(right, float64(frustumCornerLightSpace.X()))
-				bottom = math.Min(bottom, float64(frustumCornerLightSpace.Y()))
-				top = math.Max(top, float64(frustumCornerLightSpace.Y()))
-				near = math.Min(near, float64(frustumCornerLightSpace.Z()))
-				far = math.Max(far, float64(frustumCornerLightSpace.Z()))
-			}
-			depthVertexShader.Projection.Set(
-				mgl32.Ortho(float32(left), float32(right), float32(bottom), float32(top), float32(near), float32(far)))
-			depthVertexShader.View.Set(mgl32.Ident4())
-			gl.BindVertexArray(cubeVao)
-			for x := 0; x < 10; x++ {
-				for y := 0; y < 10; y++ {
-					modelTranslation := mgl32.Translate3D(float32(4*x), 5.0, float32(4*y))
-					depthVertexShader.Model.Set(modelTranslation)
-					gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
+				depthVertexShader.Projection.Set()
+				depthVertexShader.View.Set()
+				gl.BindVertexArray(cubeVao)
+				for x := 0; x < 10; x++ {
+					for y := 0; y < 10; y++ {
+						modelTranslation := mgl32.Translate3D(float32(4*x), 5.0, float32(4*y))
+						depthVertexShader.Model.Set(modelTranslation)
+						gl.DrawArrays(gl.TRIANGLES, 0, 6*2*3)
+					}
 				}
-			}
-		}
+			}*/
 
 		// Step 2: Depth Pass for pointlight culling
 		gl.BindFramebuffer(gl.FRAMEBUFFER, depthMapFBO)

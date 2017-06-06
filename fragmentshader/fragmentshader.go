@@ -101,7 +101,8 @@ void main() {
 	} else if (renderMode == 4) {
 		outputColor = texture(diffuse, fragment_in.uv);
 	}	
-}` + "\x00"
+}
+` + "\x00"
 )
 
 // FragmentShader represents a FragmentShader
